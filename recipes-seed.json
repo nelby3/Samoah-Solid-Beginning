@@ -1,0 +1,209 @@
+{
+  "_note": "Seed data for the allergen tracker. Prep formats only — not guidance on timing, quantity, or medical suitability. Confirm approach with your pediatrician.",
+  "_safety_rules_applied": [
+    "Nut and seed butters always thinned to a smooth, spreadable-to-runny consistency; never served in a thick glob or as whole/chopped nuts",
+    "No honey (botulism risk under 12 months)",
+    "Egg cooked fully through",
+    "Low-mercury fish only",
+    "No added salt or sugar",
+    "Cow's milk as yogurt/cheese only, not as a drink, before 12 months"
+  ],
+  "allergens": [
+    {
+      "id": "peanut",
+      "name": "Peanut",
+      "recipes": [
+        {
+          "name": "Thinned peanut butter oatmeal",
+          "prep": "Stir 1 tsp smooth peanut butter into warm oatmeal until fully dissolved and no streaks remain. Loosen with breastmilk, formula, or water to a soft porridge.",
+          "time": "5 min"
+        },
+        {
+          "name": "Peanut-banana mash",
+          "prep": "Mash a ripe banana, whisk in 1 tsp smooth peanut butter thinned with 2 tsp warm water. Serve on a pre-loaded spoon.",
+          "time": "3 min"
+        },
+        {
+          "name": "Peanut yogurt swirl",
+          "prep": "Whisk 1 tsp peanut powder or thinned peanut butter into 2 tbsp full-fat plain yogurt until smooth.",
+          "time": "2 min",
+          "note": "Also exposes dairy — log both, or use a non-dairy yogurt if isolating."
+        }
+      ]
+    },
+    {
+      "id": "egg",
+      "name": "Egg",
+      "recipes": [
+        {
+          "name": "Scrambled egg strips",
+          "prep": "Whisk one egg, cook slowly in a little olive oil until fully set, slide out flat and cut into finger-width strips.",
+          "time": "6 min"
+        },
+        {
+          "name": "Mashed yolk",
+          "prep": "Hard-boil an egg, mash the yolk with breastmilk, formula, or water to a smooth paste.",
+          "time": "12 min",
+          "note": "Yolk only — introduce white separately if you want to isolate the two proteins."
+        },
+        {
+          "name": "Veggie omelet fingers",
+          "prep": "Whisk one egg with 1 tbsp finely grated soft-cooked zucchini or sweet potato. Cook flat until set, cut into strips.",
+          "time": "8 min"
+        }
+      ]
+    },
+    {
+      "id": "dairy",
+      "name": "Dairy",
+      "recipes": [
+        {
+          "name": "Full-fat plain yogurt",
+          "prep": "Serve 2-3 tbsp unsweetened whole-milk yogurt on a pre-loaded spoon. Mash in fruit if desired.",
+          "time": "1 min"
+        },
+        {
+          "name": "Ricotta toast strips",
+          "prep": "Spread whole-milk ricotta thinly on lightly toasted bread, cut into finger-width strips.",
+          "time": "4 min",
+          "note": "Also exposes wheat."
+        },
+        {
+          "name": "Cheesy egg scramble",
+          "prep": "Fold 1 tbsp finely grated mild cheese into scrambled egg as it sets.",
+          "time": "6 min",
+          "note": "Also exposes egg."
+        }
+      ]
+    },
+    {
+      "id": "wheat",
+      "name": "Wheat",
+      "recipes": [
+        {
+          "name": "Toast strips",
+          "prep": "Lightly toast a slice of plain wheat bread, cut into finger-width strips, top with a thin layer of avocado or thinned nut butter.",
+          "time": "4 min"
+        },
+        {
+          "name": "Soft pasta spirals",
+          "prep": "Boil fusilli or rotini past al dente until very soft. Toss with a little olive oil and serve whole for grasping.",
+          "time": "12 min"
+        },
+        {
+          "name": "Cream of wheat porridge",
+          "prep": "Cook farina with water, breastmilk, or formula to a soft porridge. Stir in fruit puree.",
+          "time": "6 min"
+        }
+      ]
+    },
+    {
+      "id": "soy",
+      "name": "Soy",
+      "recipes": [
+        {
+          "name": "Roasted tofu strips",
+          "prep": "Cut firm tofu into finger-width strips, roast at 400F for 20 min until edges firm enough to hold. Cool fully.",
+          "time": "25 min"
+        },
+        {
+          "name": "Edamame mash",
+          "prep": "Steam shelled edamame until very soft, mash thoroughly with a fork, loosen with water. Ensure no whole beans or skins remain.",
+          "time": "10 min"
+        },
+        {
+          "name": "Soy yogurt with fruit",
+          "prep": "Stir mashed fruit into 2-3 tbsp unsweetened plain soy yogurt.",
+          "time": "2 min"
+        }
+      ]
+    },
+    {
+      "id": "tree_nuts",
+      "name": "Tree nuts",
+      "recipes": [
+        {
+          "name": "Thinned almond butter porridge",
+          "prep": "Whisk 1 tsp smooth almond butter into warm oatmeal until fully incorporated. Loosen to a soft consistency.",
+          "time": "5 min"
+        },
+        {
+          "name": "Cashew butter on banana",
+          "prep": "Thin 1 tsp smooth cashew butter with warm water, spread in a very thin layer along a banana spear.",
+          "time": "3 min"
+        },
+        {
+          "name": "Walnut butter yogurt",
+          "prep": "Whisk 1 tsp smooth walnut butter into plain yogurt until no clumps remain.",
+          "time": "2 min",
+          "note": "Tree nuts are not one allergen — almond, cashew, walnut, pistachio and others are distinct. Log each separately."
+        }
+      ]
+    },
+    {
+      "id": "fish",
+      "name": "Fish",
+      "recipes": [
+        {
+          "name": "Flaked salmon",
+          "prep": "Bake a salmon fillet until opaque, cool, flake thoroughly and check by hand for bones. Serve in soft flakes or mixed into mash.",
+          "time": "18 min"
+        },
+        {
+          "name": "Cod and potato mash",
+          "prep": "Poach cod until it flakes, check for bones, mash with cooked potato and a splash of milk or water.",
+          "time": "20 min"
+        },
+        {
+          "name": "Salmon patties",
+          "prep": "Mix flaked cooked salmon with mashed potato, form into small soft patties, pan-fry lightly. Cut into strips.",
+          "time": "25 min"
+        }
+      ]
+    },
+    {
+      "id": "shellfish",
+      "name": "Shellfish",
+      "recipes": [
+        {
+          "name": "Shrimp in avocado mash",
+          "prep": "Cook shrimp through, mince very finely, fold into mashed avocado. Serve on a pre-loaded spoon.",
+          "time": "10 min"
+        },
+        {
+          "name": "Crab and avocado",
+          "prep": "Fold cooked, well-picked-over crab meat into mashed avocado. Check carefully for shell fragments.",
+          "time": "5 min"
+        },
+        {
+          "name": "Shrimp pasta",
+          "prep": "Mince cooked shrimp finely and toss through very soft pasta with olive oil.",
+          "time": "15 min",
+          "note": "Crustaceans and molluscs are distinct allergen groups — log shrimp, crab, clam separately."
+        }
+      ]
+    },
+    {
+      "id": "sesame",
+      "name": "Sesame",
+      "recipes": [
+        {
+          "name": "Tahini oatmeal",
+          "prep": "Whisk 1 tsp tahini into warm oatmeal until fully dissolved. Loosen with water or milk.",
+          "time": "5 min"
+        },
+        {
+          "name": "Tahini yogurt dip",
+          "prep": "Whisk 1 tsp tahini into 2 tbsp plain yogurt. Serve on a spoon or as a dip for soft veggie spears.",
+          "time": "2 min"
+        },
+        {
+          "name": "Hummus on toast",
+          "prep": "Spread a thin layer of plain, low-salt, tahini-based hummus on toast strips.",
+          "time": "3 min",
+          "note": "Check the label — some hummus contains little or no tahini. Also exposes wheat."
+        }
+      ]
+    }
+  ]
+}

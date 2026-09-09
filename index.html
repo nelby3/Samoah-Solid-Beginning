@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Allergen Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['system-ui', 'sans-serif'] } } } };
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+  <div id="app" class="mx-auto flex min-h-screen max-w-md flex-col px-4">
+
+    <!-- Loading -->
+    <div id="view-loading" class="flex flex-1 items-center justify-center">
+      <p class="text-slate-400">Loading…</p>
+    </div>
+
+    <!-- Signed out: magic-link login -->
+    <section id="view-login" class="hidden flex-1 flex-col justify-center py-12">
+      <h1 class="text-2xl font-semibold">Allergen Tracker</h1>
+      <p class="mt-1 text-sm text-slate-500">
+        Tracking allergen introduction for one child. Sign in with a link sent to your email.
+      </p>
+
+      <form id="login-form" class="mt-8 space-y-3">
+        <label for="email" class="block text-sm font-medium">Email</label>
+        <input
+          id="email" name="email" type="email" required autocomplete="email"
+          inputmode="email" placeholder="you@example.com"
+          class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                 outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+        <button
+          type="submit" id="login-btn"
+          class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white
+                 active:scale-[0.99] disabled:opacity-50">
+          Send magic link
+        </button>
+      </form>
+
+      <p id="login-msg" class="mt-4 hidden rounded-xl px-4 py-3 text-sm"></p>
+    </section>
+
+    <!-- Signed in -->
+    <section id="view-app" class="hidden flex-1 flex-col py-8">
+      <header class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold">Allergen Tracker</h1>
+          <p class="text-sm text-slate-500">
+            Signed in as <span id="user-email" class="font-medium text-slate-700"></span>
+          </p>
+        </div>
+        <button
+          id="logout-btn"
+          class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium active:scale-[0.98]">
+          Sign out
+        </button>
+      </header>
+
+      <div class="mt-10 rounded-2xl border border-dashed border-slate-300 p-6 text-center">
+        <p class="text-sm text-slate-500">
+          Phase 1 complete — authentication works.<br />
+          Logging, history, and the dashboard come next.
+        </p>
+      </div>
+    </section>
+
+    <!-- Config missing -->
+    <section id="view-config" class="hidden flex-1 flex-col justify-center py-12">
+      <h1 class="text-2xl font-semibold">Almost there</h1>
+      <p class="mt-2 text-sm text-slate-600">
+        Add your Supabase project URL and anon key to <code class="rounded bg-slate-200 px-1">config.js</code>,
+        then reload.
+      </p>
+    </section>
+  </div>
+
+  <script src="./config.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const views = {
+      loading: document.getElementById("view-loading"),
+      login: document.getElementById("view-login"),
+      app: document.getElementById("view-app"),
+      config: document.getElementById("view-config"),
+    };
+    const show = (name) => {
+      for (const [key, el] of Object.entries(views)) {
+        el.classList.toggle("hidden", key !== name);
+        el.classList.toggle("flex", key === name && key !== "loading");
+      }
+    };
+
+    const cfg = window.APP_CONFIG || {};
+    const configured =
+      cfg.SUPABASE_URL &&
+      cfg.SUPABASE_ANON_KEY &&
+      !cfg.SUPABASE_URL.includes("YOUR-PROJECT-REF") &&
+      !cfg.SUPABASE_ANON_KEY.includes("YOUR-ANON-KEY");
+
+    if (!configured) {
+      show("config");
+    } else {
+      const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+
+      const loginForm = document.getElementById("login-form");
+      const loginBtn = document.getElementById("login-btn");
+      const loginMsg = document.getElementById("login-msg");
+      const emailInput = document.getElementById("email");
+
+      const setMsg = (text, kind) => {
+        loginMsg.textContent = text;
+        loginMsg.className =
+          "mt-4 rounded-xl px-4 py-3 text-sm " +
+          (kind === "error"
+            ? "bg-red-50 text-red-700"
+            : "bg-emerald-50 text-emerald-700");
+      };
+
+      const render = (session) => {
+        if (session?.user) {
+          document.getElementById("user-email").textContent = session.user.email;
+          show("app");
+        } else {
+          show("login");
+        }
+      };
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        if (!email) return;
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Sending…";
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: window.location.href.split("#")[0] },
+        });
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Send magic link";
+        if (error) {
+          setMsg(error.message, "error");
+        } else {
+          setMsg(`Check ${email} for a sign-in link.`, "ok");
+          loginForm.reset();
+        }
+      });
+
+      document.getElementById("logout-btn").addEventListener("click", async () => {
+        await supabase.auth.signOut();
+      });
+
+      // Initial state + react to magic-link return and sign-out.
+      const { data } = await supabase.auth.getSession();
+      render(data.session);
+      supabase.auth.onAuthStateChange((_event, session) => render(session));
+    }
+  </script>
+</body>
+</html>

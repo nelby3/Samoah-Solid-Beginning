@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Local Supabase CLI (if ever used)
+supabase/.branches/
+supabase/.temp/
+
+# Never commit these — service_role key must stay out of the repo
+.env
+.env.*
+*service_role*
