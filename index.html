@@ -74,78 +74,107 @@
       </div>
 
       <div id="child-ui" class="hidden">
-        <!-- Log form -->
-        <form id="log-form" class="mt-6 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-          <div class="flex items-center justify-between">
-            <h2 id="form-title" class="text-base font-semibold">Log an introduction</h2>
-            <button type="button" id="cancel-edit"
-              class="hidden text-sm font-medium text-slate-500 underline">Cancel edit</button>
-          </div>
 
-          <div>
-            <label for="allergen" class="block text-sm font-medium">Allergen</label>
-            <select id="allergen" required
-              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10">
-            </select>
-          </div>
-
-          <div id="other-wrap" class="hidden">
-            <label for="other-allergen" class="block text-sm font-medium">Which allergen?</label>
-            <input id="other-allergen" type="text" placeholder="e.g. kiwi, mustard"
-              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
-          </div>
-
-          <div>
-            <label for="served_on" class="block text-sm font-medium">Date served</label>
-            <input id="served_on" type="date" required
-              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
-          </div>
-
-          <div>
-            <span class="block text-sm font-medium">Amount</span>
-            <div id="amount-group" class="mt-1 grid grid-cols-3 gap-2" role="group" aria-label="Amount">
-              <button type="button" data-value="taste"   class="seg">Taste</button>
-              <button type="button" data-value="partial" class="seg">Partial</button>
-              <button type="button" data-value="full"    class="seg">Full</button>
-            </div>
-          </div>
-
-          <div>
-            <span class="block text-sm font-medium">Reaction</span>
-            <div id="reaction-group" class="mt-1 grid grid-cols-4 gap-2" role="group" aria-label="Reaction">
-              <button type="button" data-value="none"     class="seg" aria-pressed="true">None</button>
-              <button type="button" data-value="mild"     class="seg">Mild</button>
-              <button type="button" data-value="moderate" class="seg">Mod.</button>
-              <button type="button" data-value="severe"   class="seg">Severe</button>
-            </div>
-          </div>
-
-          <div>
-            <label for="notes" class="block text-sm font-medium">Notes <span class="text-slate-400">(optional)</span></label>
-            <textarea id="notes" rows="2" placeholder="Anything worth remembering"
-              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"></textarea>
-          </div>
-
-          <button type="submit" id="save-btn"
-            class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white
-                   active:scale-[0.99] disabled:opacity-50">
-            Save entry
+        <!-- ============ Dashboard screen ============ -->
+        <div id="screen-dash">
+          <button id="new-entry-btn"
+            class="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3.5 text-base font-semibold text-white
+                   active:scale-[0.99]">
+            + Log an introduction
           </button>
-          <p id="form-msg" class="hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"></p>
-        </form>
 
-        <!-- History -->
-        <div class="mt-8">
-          <h2 class="text-base font-semibold">History</h2>
-          <p id="history-empty" class="mt-3 hidden text-sm text-slate-500">
-            No entries yet. Log the first introduction above.
-          </p>
-          <ul id="history" class="mt-3 space-y-3"></ul>
+          <section class="mt-6">
+            <h2 class="text-base font-semibold">Top 9 allergens</h2>
+            <div id="grid" class="mt-3 grid grid-cols-3 gap-2"></div>
+            <div class="mt-3 flex items-center gap-4 text-xs text-slate-400">
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-slate-300"></span>Not tried</span>
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Introduced</span>
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Reaction noted</span>
+            </div>
+          </section>
+
+          <section id="history-section" class="mt-8 scroll-mt-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold">History</h2>
+              <button id="clear-filter"
+                class="hidden rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">
+                <span id="filter-label"></span> ✕
+              </button>
+            </div>
+            <p id="history-empty" class="mt-3 hidden text-sm text-slate-500"></p>
+            <ul id="history" class="mt-3 space-y-3"></ul>
+          </section>
         </div>
+
+        <!-- ============ Log / edit screen ============ -->
+        <div id="screen-log" class="hidden">
+          <button id="back-btn" class="mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
+
+          <form id="log-form" class="mt-3 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <h2 id="form-title" class="text-base font-semibold">Log an introduction</h2>
+
+            <div>
+              <label for="allergen" class="block text-sm font-medium">Allergen</label>
+              <select id="allergen" required
+                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10">
+              </select>
+            </div>
+
+            <div id="other-wrap" class="hidden">
+              <label for="other-allergen" class="block text-sm font-medium">Which allergen?</label>
+              <input id="other-allergen" type="text" placeholder="e.g. kiwi, mustard"
+                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+            </div>
+
+            <div>
+              <label for="served_on" class="block text-sm font-medium">Date served</label>
+              <input id="served_on" type="date" required
+                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+            </div>
+
+            <div>
+              <span class="block text-sm font-medium">Amount</span>
+              <div id="amount-group" class="mt-1 grid grid-cols-3 gap-2" role="group" aria-label="Amount">
+                <button type="button" data-value="taste"   class="seg">Taste</button>
+                <button type="button" data-value="partial" class="seg">Partial</button>
+                <button type="button" data-value="full"    class="seg">Full</button>
+              </div>
+            </div>
+
+            <div>
+              <span class="block text-sm font-medium">Reaction</span>
+              <div id="reaction-group" class="mt-1 grid grid-cols-4 gap-2" role="group" aria-label="Reaction">
+                <button type="button" data-value="none"     class="seg" aria-pressed="true">None</button>
+                <button type="button" data-value="mild"     class="seg">Mild</button>
+                <button type="button" data-value="moderate" class="seg">Mod.</button>
+                <button type="button" data-value="severe"   class="seg">Severe</button>
+              </div>
+            </div>
+
+            <div>
+              <label for="notes" class="block text-sm font-medium">Notes <span class="text-slate-400">(optional)</span></label>
+              <textarea id="notes" rows="2" placeholder="Anything worth remembering"
+                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"></textarea>
+            </div>
+
+            <button type="submit" id="save-btn"
+              class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white
+                     active:scale-[0.99] disabled:opacity-50">
+              Save entry
+            </button>
+            <button type="button" id="delete-btn"
+              class="hidden w-full rounded-xl border border-red-300 px-4 py-3 text-base font-semibold text-red-600
+                     active:scale-[0.99]">
+              Delete entry
+            </button>
+            <p id="form-msg" class="hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"></p>
+          </form>
+        </div>
+
       </div>
     </section>
 
@@ -164,8 +193,10 @@
       @apply rounded-xl border border-slate-300 bg-white px-2 py-2.5 text-sm font-medium
              text-slate-600 active:scale-[0.98];
     }
-    .seg[aria-pressed="true"] {
-      @apply border-slate-900 bg-slate-900 text-white;
+    .seg[aria-pressed="true"] { @apply border-slate-900 bg-slate-900 text-white; }
+    .tile {
+      @apply flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white p-3 text-left
+             ring-1 ring-slate-200 active:scale-[0.98];
     }
   </style>
 
@@ -212,6 +243,37 @@
       let session = null;
       let childId = null;
       let editingId = null;
+      let allRows = [];
+      let filterAllergen = null;
+
+      // ---- helpers ----
+      const todayLocal = () => {
+        const d = new Date();
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      };
+      const parseDate = (iso) => {
+        const [y, m, d] = iso.split("-").map(Number);
+        return new Date(y, m - 1, d);
+      };
+      const fmtDate = (iso) =>
+        parseDate(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      const daysSince = (iso) => {
+        const now = new Date();
+        const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        return Math.round((t0 - parseDate(iso)) / 86400000);
+      };
+      const agoLabel = (n) => (n <= 0 ? "today" : n === 1 ? "1d ago" : `${n}d ago`);
+      const allergenLabel = (row) =>
+        row.is_top_nine ? (TOP9_LABEL[row.allergen] || row.allergen) : row.allergen;
+      const esc = (s) =>
+        String(s ?? "").replace(/[&<>"']/g, (c) => (
+          { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+      function showScreen(name) {
+        $("screen-dash").classList.toggle("hidden", name !== "dash");
+        $("screen-log").classList.toggle("hidden", name !== "log");
+        window.scrollTo(0, 0);
+      }
 
       // ---- auth ----
       const loginForm = $("login-form"), loginBtn = $("login-btn"), loginMsg = $("login-msg");
@@ -259,24 +321,10 @@
           const btn = e.target.closest("button");
           if (!btn) return;
           const already = btn.getAttribute("aria-pressed") === "true";
-          // amount is optional (toggle off allowed); reaction always has a value
           if (gid === "amount-group" && already) setSeg(gid, null);
           else setSeg(gid, btn.dataset.value);
         });
       }
-
-      const todayLocal = () => {
-        const d = new Date();
-        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-      };
-      const fmtDate = (iso) => {
-        const [y, m, d] = iso.split("-").map(Number);
-        return new Date(y, m - 1, d).toLocaleDateString(undefined, {
-          weekday: "short", month: "short", day: "numeric",
-        });
-      };
-      const allergenLabel = (row) =>
-        row.is_top_nine ? (TOP9_LABEL[row.allergen] || row.allergen) : row.allergen;
 
       function resetForm() {
         editingId = null;
@@ -288,15 +336,15 @@
         setSeg("reaction-group", "none");
         $("form-title").textContent = "Log an introduction";
         $("save-btn").textContent = "Save entry";
-        $("cancel-edit").classList.add("hidden");
+        $("delete-btn").classList.add("hidden");
         $("form-msg").classList.add("hidden");
       }
 
       function fillForm(row) {
+        resetForm();
         editingId = row.id;
         if (row.is_top_nine && TOP9_LABEL[row.allergen]) {
           $("allergen").value = row.allergen;
-          $("other-wrap").classList.add("hidden");
         } else {
           $("allergen").value = "__other";
           $("other-wrap").classList.remove("hidden");
@@ -308,11 +356,12 @@
         $("notes").value = row.notes || "";
         $("form-title").textContent = "Edit entry";
         $("save-btn").textContent = "Update entry";
-        $("cancel-edit").classList.remove("hidden");
-        $("form-msg").classList.add("hidden");
-        $("log-form").scrollIntoView({ behavior: "smooth", block: "start" });
+        $("delete-btn").classList.remove("hidden");
+        showScreen("log");
       }
-      $("cancel-edit").addEventListener("click", resetForm);
+
+      $("new-entry-btn").addEventListener("click", () => { resetForm(); showScreen("log"); });
+      $("back-btn").addEventListener("click", () => { resetForm(); showScreen("dash"); });
 
       // ---- data ----
       function showLoadError(where, error) {
@@ -323,8 +372,8 @@
           (error.hint ? ` — ${error.hint}` : "");
       }
 
-      // Run a query; if it fails on a JWT timing/expiry error (usually a stale
-      // token after a device clock correction), mint a fresh token and retry once.
+      // Run a query; on a JWT timing/expiry error (usually a stale token after a
+      // device clock correction) mint a fresh token and retry once.
       async function db(build) {
         let res = await build();
         const m = res.error && (res.error.message || "");
@@ -352,21 +401,75 @@
         $("no-child").classList.add("hidden");
         $("child-ui").classList.remove("hidden");
         resetForm();
-        await loadHistory();
+        showScreen("dash");
+        await loadData();
       }
 
-      async function loadHistory() {
+      async function loadData() {
         const { data, error } = await db(() => supabase
           .from("introductions").select("*")
           .order("served_on", { ascending: false })
           .order("created_at", { ascending: false }));
         if (error) { showLoadError("Loading history", error); return; }
-        renderHistory(data || []);
+        allRows = data || [];
+        renderDashboard();
+        renderHistory();
       }
 
-      function renderHistory(rows) {
+      function statusOf(rows) {
+        if (rows.length === 0) return "never";
+        return rows.some((r) => r.reaction && r.reaction !== "none") ? "reaction" : "ok";
+      }
+
+      function renderDashboard() {
+        const grid = $("grid");
+        grid.innerHTML = "";
+        const DOT = { never: "bg-slate-300", ok: "bg-emerald-500", reaction: "bg-amber-500" };
+        for (const [id, label] of TOP9) {
+          const rows = allRows.filter((r) => r.is_top_nine && r.allergen === id);
+          const status = statusOf(rows);
+          let sub = "Not tried yet";
+          if (rows.length) {
+            const latest = rows.reduce((a, b) => (a.served_on >= b.served_on ? a : b));
+            sub = `${rows.length}× · ${agoLabel(daysSince(latest.served_on))}`;
+          }
+          const btn = document.createElement("button");
+          btn.className = "tile" + (filterAllergen === id ? " ring-2 ring-slate-900" : "");
+          btn.innerHTML = `
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 shrink-0 rounded-full ${DOT[status]}"></span>
+              <span class="text-sm font-semibold leading-tight">${label}</span>
+            </div>
+            <div class="mt-2 text-xs text-slate-500">${sub}</div>`;
+          btn.addEventListener("click", () => setFilter(id));
+          grid.appendChild(btn);
+        }
+      }
+
+      function setFilter(id) {
+        filterAllergen = filterAllergen === id ? null : id;
+        renderDashboard();
+        renderHistory();
+        if (filterAllergen) $("history-section").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      $("clear-filter").addEventListener("click", () => setFilter(filterAllergen));
+
+      function renderHistory() {
+        const rows = filterAllergen
+          ? allRows.filter((r) => r.is_top_nine && r.allergen === filterAllergen)
+          : allRows;
+
+        const cf = $("clear-filter");
+        cf.classList.toggle("hidden", !filterAllergen);
+        if (filterAllergen) $("filter-label").textContent = TOP9_LABEL[filterAllergen];
+
+        const empty = $("history-empty");
+        empty.classList.toggle("hidden", rows.length > 0);
+        empty.textContent = filterAllergen
+          ? `No ${TOP9_LABEL[filterAllergen]} entries yet.`
+          : "No entries yet. Log the first introduction above.";
+
         const ul = $("history");
-        $("history-empty").classList.toggle("hidden", rows.length > 0);
         ul.innerHTML = "";
         for (const row of rows) {
           const li = document.createElement("li");
@@ -382,20 +485,12 @@
             </div>
             <div class="mt-0.5 text-sm text-slate-500">${esc(parts.join(" · "))}</div>
             ${row.notes ? `<p class="mt-2 text-sm text-slate-700 whitespace-pre-wrap">${esc(row.notes)}</p>` : ""}
-            <div class="mt-3 flex gap-4 text-sm font-medium">
-              <button data-edit="${row.id}" class="text-slate-600 underline">Edit</button>
-              <button data-del="${row.id}" class="text-red-600 underline">Delete</button>
+            <div class="mt-3">
+              <button data-edit class="text-sm font-medium text-slate-600 underline">Edit</button>
             </div>`;
           li.querySelector("[data-edit]").addEventListener("click", () => fillForm(row));
-          li.querySelector("[data-del]").addEventListener("click", () => onDelete(row));
           ul.appendChild(li);
         }
-      }
-
-      function esc(s) {
-        return String(s ?? "").replace(/[&<>"']/g, (c) => (
-          { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
-        ));
       }
 
       $("log-form").addEventListener("submit", async (e) => {
@@ -433,16 +528,21 @@
           return;
         }
         resetForm();
-        await loadHistory();
+        showScreen("dash");
+        await loadData();
       });
 
-      async function onDelete(row) {
-        if (!confirm(`Delete the ${allergenLabel(row)} entry from ${fmtDate(row.served_on)}?`)) return;
-        const { error } = await db(() => supabase.from("introductions").delete().eq("id", row.id));
+      $("delete-btn").addEventListener("click", async () => {
+        if (!editingId) return;
+        const row = allRows.find((r) => r.id === editingId);
+        const what = row ? `${allergenLabel(row)} entry from ${fmtDate(row.served_on)}` : "this entry";
+        if (!confirm(`Delete the ${what}?`)) return;
+        const { error } = await db(() => supabase.from("introductions").delete().eq("id", editingId));
         if (error) { alert(error.message); return; }
-        if (editingId === row.id) resetForm();
-        await loadHistory();
-      }
+        resetForm();
+        showScreen("dash");
+        await loadData();
+      });
 
       // ---- boot ----
       function renderAuth(s) {
