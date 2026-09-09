@@ -59,6 +59,21 @@ create trigger introductions_set_updated_at
   for each row execute function set_updated_at();
 
 -- ---------------------------------------------------------------------------
+-- Table grants
+-- ---------------------------------------------------------------------------
+-- PostgREST connects as the `authenticated` / `anon` roles. Tables created via
+-- the SQL editor are not granted to those roles automatically (the Table Editor
+-- UI does it for you), so without this the API returns 42501 "permission denied"
+-- before RLS is ever evaluated. RLS below still does the actual row filtering;
+-- `anon` is granted nothing because every path through the app is authenticated.
+
+grant usage on schema public to authenticated;
+
+grant select                         on public.children      to authenticated;
+grant select                         on public.caregivers    to authenticated;
+grant select, insert, update, delete on public.introductions to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Row-level security
 -- ---------------------------------------------------------------------------
 

@@ -59,6 +59,12 @@
         </button>
       </header>
 
+      <!-- Load error -->
+      <div id="load-error" class="mt-10 hidden rounded-2xl border border-red-200 bg-red-50 p-4">
+        <p class="text-sm font-medium text-red-800">Couldn't load data</p>
+        <p id="load-error-msg" class="mt-1 break-words text-sm text-red-700"></p>
+      </div>
+
       <!-- No child linked -->
       <div id="no-child" class="mt-10 hidden rounded-2xl border border-dashed border-slate-300 p-6 text-center">
         <p class="text-sm text-slate-500">
@@ -309,10 +315,19 @@
       $("cancel-edit").addEventListener("click", resetForm);
 
       // ---- data ----
+      function showLoadError(where, error) {
+        console.error(where, error);
+        $("load-error").classList.remove("hidden");
+        $("load-error-msg").textContent =
+          `${where}: ${error.message || JSON.stringify(error)}` +
+          (error.hint ? ` — ${error.hint}` : "");
+      }
+
       async function loadChild() {
+        $("load-error").classList.add("hidden");
         const { data, error } = await supabase
           .from("children").select("id,name").order("created_at").limit(1);
-        if (error) { console.error(error); return; }
+        if (error) { showLoadError("Loading child", error); return; }
         const child = data && data[0];
         if (!child) {
           $("no-child").classList.remove("hidden");
@@ -333,7 +348,7 @@
           .from("introductions").select("*")
           .order("served_on", { ascending: false })
           .order("created_at", { ascending: false });
-        if (error) { console.error(error); return; }
+        if (error) { showLoadError("Loading history", error); return; }
         renderHistory(data || []);
       }
 
