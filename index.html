@@ -323,10 +323,22 @@
           (error.hint ? ` — ${error.hint}` : "");
       }
 
+      // Run a query; if it fails on a JWT timing/expiry error (usually a stale
+      // token after a device clock correction), mint a fresh token and retry once.
+      async function db(build) {
+        let res = await build();
+        const m = res.error && (res.error.message || "");
+        if (m && /jwt|issued at|token is expired|expired|before issued|not yet valid/i.test(m)) {
+          const { data, error } = await supabase.auth.refreshSession();
+          if (!error && data?.session) { session = data.session; res = await build(); }
+        }
+        return res;
+      }
+
       async function loadChild() {
         $("load-error").classList.add("hidden");
-        const { data, error } = await supabase
-          .from("children").select("id,name").order("created_at").limit(1);
+        const { data, error } = await db(() => supabase
+          .from("children").select("id,name").order("created_at").limit(1));
         if (error) { showLoadError("Loading child", error); return; }
         const child = data && data[0];
         if (!child) {
@@ -344,10 +356,10 @@
       }
 
       async function loadHistory() {
-        const { data, error } = await supabase
+        const { data, error } = await db(() => supabase
           .from("introductions").select("*")
           .order("served_on", { ascending: false })
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false }));
         if (error) { showLoadError("Loading history", error); return; }
         renderHistory(data || []);
       }
@@ -407,14 +419,12 @@
         const btn = $("save-btn");
         btn.disabled = true;
         btn.textContent = editingId ? "Updating…" : "Saving…";
-        let error;
-        if (editingId) {
-          ({ error } = await supabase.from("introductions").update(payload).eq("id", editingId));
-        } else {
-          ({ error } = await supabase.from("introductions").insert({
-            ...payload, child_id: childId, created_by: session.user.id,
-          }));
-        }
+        const { error } = await db(() =>
+          editingId
+            ? supabase.from("introductions").update(payload).eq("id", editingId)
+            : supabase.from("introductions").insert({
+                ...payload, child_id: childId, created_by: session.user.id,
+              }));
         btn.disabled = false;
         if (error) {
           msg.textContent = error.message;
@@ -428,7 +438,7 @@
 
       async function onDelete(row) {
         if (!confirm(`Delete the ${allergenLabel(row)} entry from ${fmtDate(row.served_on)}?`)) return;
-        const { error } = await supabase.from("introductions").delete().eq("id", row.id);
+        const { error } = await db(() => supabase.from("introductions").delete().eq("id", row.id));
         if (error) { alert(error.message); return; }
         if (editingId === row.id) resetForm();
         await loadHistory();
