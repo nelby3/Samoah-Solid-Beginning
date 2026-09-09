@@ -37,8 +37,8 @@ before relying on it.
 ## Build status
 
 - [x] **Phase 1 — Foundation:** schema, RLS, magic-link auth
-- [ ] Phase 2 — Log and history
-- [ ] Phase 3 — Dashboard
+- [x] **Phase 2 — Log and history:** log form, history list, edit/delete
+- [x] **Phase 3 — Dashboard:** top-9 grid, per-allergen status, tap-to-filter
 - [ ] Phase 4 — Re-exposure tracker
 - [ ] Phase 5 — Recipes
 - [ ] Phase 6 — Export
