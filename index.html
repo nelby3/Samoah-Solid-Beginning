@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="light dark" />
+  <meta name="color-scheme" content="light" />
   <title>Allergen Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -11,7 +11,7 @@
   </script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-  <div id="app" class="mx-auto flex min-h-screen max-w-md flex-col px-4">
+  <div id="app" class="mx-auto flex min-h-screen max-w-md flex-col px-4 pb-16">
 
     <!-- Loading -->
     <div id="view-loading" class="flex flex-1 items-center justify-center">
@@ -24,7 +24,6 @@
       <p class="mt-1 text-sm text-slate-500">
         Tracking allergen introduction for one child. Sign in with a link sent to your email.
       </p>
-
       <form id="login-form" class="mt-8 space-y-3">
         <label for="email" class="block text-sm font-medium">Email</label>
         <input
@@ -39,31 +38,108 @@
           Send magic link
         </button>
       </form>
-
       <p id="login-msg" class="mt-4 hidden rounded-xl px-4 py-3 text-sm"></p>
     </section>
 
     <!-- Signed in -->
-    <section id="view-app" class="hidden flex-1 flex-col py-8">
-      <header class="flex items-center justify-between">
+    <section id="view-app" class="hidden flex-1 flex-col py-6">
+      <header class="flex items-start justify-between">
         <div>
           <h1 class="text-xl font-semibold">Allergen Tracker</h1>
           <p class="text-sm text-slate-500">
-            Signed in as <span id="user-email" class="font-medium text-slate-700"></span>
+            <span id="child-name" class="font-medium text-slate-700"></span>
+            <span id="child-sep" class="hidden">·</span>
+            <span id="user-email"></span>
           </p>
         </div>
         <button
           id="logout-btn"
-          class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium active:scale-[0.98]">
+          class="shrink-0 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium active:scale-[0.98]">
           Sign out
         </button>
       </header>
 
-      <div class="mt-10 rounded-2xl border border-dashed border-slate-300 p-6 text-center">
+      <!-- No child linked -->
+      <div id="no-child" class="mt-10 hidden rounded-2xl border border-dashed border-slate-300 p-6 text-center">
         <p class="text-sm text-slate-500">
-          Phase 1 complete — authentication works.<br />
-          Logging, history, and the dashboard come next.
+          No child record is linked to this account yet. Add a <code>caregivers</code>
+          row in Supabase (see <code>0001_init.sql</code>), then reload.
         </p>
+      </div>
+
+      <div id="child-ui" class="hidden">
+        <!-- Log form -->
+        <form id="log-form" class="mt-6 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <div class="flex items-center justify-between">
+            <h2 id="form-title" class="text-base font-semibold">Log an introduction</h2>
+            <button type="button" id="cancel-edit"
+              class="hidden text-sm font-medium text-slate-500 underline">Cancel edit</button>
+          </div>
+
+          <div>
+            <label for="allergen" class="block text-sm font-medium">Allergen</label>
+            <select id="allergen" required
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10">
+            </select>
+          </div>
+
+          <div id="other-wrap" class="hidden">
+            <label for="other-allergen" class="block text-sm font-medium">Which allergen?</label>
+            <input id="other-allergen" type="text" placeholder="e.g. kiwi, mustard"
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+          </div>
+
+          <div>
+            <label for="served_on" class="block text-sm font-medium">Date served</label>
+            <input id="served_on" type="date" required
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+          </div>
+
+          <div>
+            <span class="block text-sm font-medium">Amount</span>
+            <div id="amount-group" class="mt-1 grid grid-cols-3 gap-2" role="group" aria-label="Amount">
+              <button type="button" data-value="taste"   class="seg">Taste</button>
+              <button type="button" data-value="partial" class="seg">Partial</button>
+              <button type="button" data-value="full"    class="seg">Full</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="block text-sm font-medium">Reaction</span>
+            <div id="reaction-group" class="mt-1 grid grid-cols-4 gap-2" role="group" aria-label="Reaction">
+              <button type="button" data-value="none"     class="seg" aria-pressed="true">None</button>
+              <button type="button" data-value="mild"     class="seg">Mild</button>
+              <button type="button" data-value="moderate" class="seg">Mod.</button>
+              <button type="button" data-value="severe"   class="seg">Severe</button>
+            </div>
+          </div>
+
+          <div>
+            <label for="notes" class="block text-sm font-medium">Notes <span class="text-slate-400">(optional)</span></label>
+            <textarea id="notes" rows="2" placeholder="Anything worth remembering"
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                     outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"></textarea>
+          </div>
+
+          <button type="submit" id="save-btn"
+            class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white
+                   active:scale-[0.99] disabled:opacity-50">
+            Save entry
+          </button>
+          <p id="form-msg" class="hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"></p>
+        </form>
+
+        <!-- History -->
+        <div class="mt-8">
+          <h2 class="text-base font-semibold">History</h2>
+          <p id="history-empty" class="mt-3 hidden text-sm text-slate-500">
+            No entries yet. Log the first introduction above.
+          </p>
+          <ul id="history" class="mt-3 space-y-3"></ul>
+        </div>
       </div>
     </section>
 
@@ -71,92 +147,292 @@
     <section id="view-config" class="hidden flex-1 flex-col justify-center py-12">
       <h1 class="text-2xl font-semibold">Almost there</h1>
       <p class="mt-2 text-sm text-slate-600">
-        Add your Supabase project URL and anon key to <code class="rounded bg-slate-200 px-1">config.js</code>,
+        Add your Supabase project URL and key to <code class="rounded bg-slate-200 px-1">config.js</code>,
         then reload.
       </p>
     </section>
   </div>
 
+  <style type="text/tailwindcss">
+    .seg {
+      @apply rounded-xl border border-slate-300 bg-white px-2 py-2.5 text-sm font-medium
+             text-slate-600 active:scale-[0.98];
+    }
+    .seg[aria-pressed="true"] {
+      @apply border-slate-900 bg-slate-900 text-white;
+    }
+  </style>
+
   <script src="./config.js"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
+    const $ = (id) => document.getElementById(id);
     const views = {
-      loading: document.getElementById("view-loading"),
-      login: document.getElementById("view-login"),
-      app: document.getElementById("view-app"),
-      config: document.getElementById("view-config"),
+      loading: $("view-loading"), login: $("view-login"),
+      app: $("view-app"), config: $("view-config"),
     };
     const show = (name) => {
-      for (const [key, el] of Object.entries(views)) {
-        el.classList.toggle("hidden", key !== name);
-        el.classList.toggle("flex", key === name && key !== "loading");
+      for (const [k, el] of Object.entries(views)) {
+        el.classList.toggle("hidden", k !== name);
+        el.classList.toggle("flex", k === name && k !== "loading");
       }
+    };
+
+    const TOP9 = [
+      ["peanut", "Peanut"], ["egg", "Egg"], ["dairy", "Dairy"], ["wheat", "Wheat"],
+      ["soy", "Soy"], ["tree_nuts", "Tree nuts"], ["fish", "Fish"],
+      ["shellfish", "Shellfish"], ["sesame", "Sesame"],
+    ];
+    const TOP9_LABEL = Object.fromEntries(TOP9);
+    const AMOUNT_LABEL = { taste: "Taste", partial: "Partial serving", full: "Full serving" };
+    const REACTION_BADGE = {
+      none: "bg-slate-100 text-slate-600",
+      mild: "bg-amber-100 text-amber-800",
+      moderate: "bg-orange-100 text-orange-800",
+      severe: "bg-red-100 text-red-800",
     };
 
     const cfg = window.APP_CONFIG || {};
     const configured =
-      cfg.SUPABASE_URL &&
-      cfg.SUPABASE_ANON_KEY &&
+      cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY &&
       !cfg.SUPABASE_URL.includes("YOUR-PROJECT-REF") &&
       !cfg.SUPABASE_ANON_KEY.includes("YOUR-ANON-KEY");
 
-    if (!configured) {
-      show("config");
-    } else {
-      const supabase = createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+    if (!configured) { show("config"); }
+    else { main(createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY)); }
 
-      const loginForm = document.getElementById("login-form");
-      const loginBtn = document.getElementById("login-btn");
-      const loginMsg = document.getElementById("login-msg");
-      const emailInput = document.getElementById("email");
+    async function main(supabase) {
+      let session = null;
+      let childId = null;
+      let editingId = null;
 
-      const setMsg = (text, kind) => {
-        loginMsg.textContent = text;
-        loginMsg.className =
-          "mt-4 rounded-xl px-4 py-3 text-sm " +
-          (kind === "error"
-            ? "bg-red-50 text-red-700"
-            : "bg-emerald-50 text-emerald-700");
-      };
-
-      const render = (session) => {
-        if (session?.user) {
-          document.getElementById("user-email").textContent = session.user.email;
-          show("app");
-        } else {
-          show("login");
-        }
-      };
-
+      // ---- auth ----
+      const loginForm = $("login-form"), loginBtn = $("login-btn"), loginMsg = $("login-msg");
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = emailInput.value.trim();
+        const email = $("email").value.trim();
         if (!email) return;
-        loginBtn.disabled = true;
-        loginBtn.textContent = "Sending…";
+        loginBtn.disabled = true; loginBtn.textContent = "Sending…";
         const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: window.location.href.split("#")[0] },
+          email, options: { emailRedirectTo: location.href.split("#")[0] },
         });
-        loginBtn.disabled = false;
-        loginBtn.textContent = "Send magic link";
+        loginBtn.disabled = false; loginBtn.textContent = "Send magic link";
+        loginMsg.classList.remove("hidden");
         if (error) {
-          setMsg(error.message, "error");
+          loginMsg.className = "mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700";
+          loginMsg.textContent = error.message;
         } else {
-          setMsg(`Check ${email} for a sign-in link.`, "ok");
+          loginMsg.className = "mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700";
+          loginMsg.textContent = `Check ${email} for a sign-in link.`;
           loginForm.reset();
         }
       });
+      $("logout-btn").addEventListener("click", () => supabase.auth.signOut());
 
-      document.getElementById("logout-btn").addEventListener("click", async () => {
-        await supabase.auth.signOut();
+      // ---- form widgets ----
+      const allergenSel = $("allergen");
+      allergenSel.innerHTML =
+        TOP9.map(([id, label]) => `<option value="${id}">${label}</option>`).join("") +
+        `<option value="__other">Other…</option>`;
+      allergenSel.addEventListener("change", () => {
+        $("other-wrap").classList.toggle("hidden", allergenSel.value !== "__other");
       });
 
-      // Initial state + react to magic-link return and sign-out.
+      const segValue = (groupId) => {
+        const b = document.querySelector(`#${groupId} [aria-pressed="true"]`);
+        return b ? b.dataset.value : null;
+      };
+      const setSeg = (groupId, value) => {
+        document.querySelectorAll(`#${groupId} button`).forEach((b) => {
+          b.setAttribute("aria-pressed", String(b.dataset.value === value));
+        });
+      };
+      for (const gid of ["amount-group", "reaction-group"]) {
+        $(gid).addEventListener("click", (e) => {
+          const btn = e.target.closest("button");
+          if (!btn) return;
+          const already = btn.getAttribute("aria-pressed") === "true";
+          // amount is optional (toggle off allowed); reaction always has a value
+          if (gid === "amount-group" && already) setSeg(gid, null);
+          else setSeg(gid, btn.dataset.value);
+        });
+      }
+
+      const todayLocal = () => {
+        const d = new Date();
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      };
+      const fmtDate = (iso) => {
+        const [y, m, d] = iso.split("-").map(Number);
+        return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+          weekday: "short", month: "short", day: "numeric",
+        });
+      };
+      const allergenLabel = (row) =>
+        row.is_top_nine ? (TOP9_LABEL[row.allergen] || row.allergen) : row.allergen;
+
+      function resetForm() {
+        editingId = null;
+        $("log-form").reset();
+        $("allergen").value = TOP9[0][0];
+        $("other-wrap").classList.add("hidden");
+        $("served_on").value = todayLocal();
+        setSeg("amount-group", null);
+        setSeg("reaction-group", "none");
+        $("form-title").textContent = "Log an introduction";
+        $("save-btn").textContent = "Save entry";
+        $("cancel-edit").classList.add("hidden");
+        $("form-msg").classList.add("hidden");
+      }
+
+      function fillForm(row) {
+        editingId = row.id;
+        if (row.is_top_nine && TOP9_LABEL[row.allergen]) {
+          $("allergen").value = row.allergen;
+          $("other-wrap").classList.add("hidden");
+        } else {
+          $("allergen").value = "__other";
+          $("other-wrap").classList.remove("hidden");
+          $("other-allergen").value = row.allergen;
+        }
+        $("served_on").value = row.served_on;
+        setSeg("amount-group", row.amount || null);
+        setSeg("reaction-group", row.reaction || "none");
+        $("notes").value = row.notes || "";
+        $("form-title").textContent = "Edit entry";
+        $("save-btn").textContent = "Update entry";
+        $("cancel-edit").classList.remove("hidden");
+        $("form-msg").classList.add("hidden");
+        $("log-form").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      $("cancel-edit").addEventListener("click", resetForm);
+
+      // ---- data ----
+      async function loadChild() {
+        const { data, error } = await supabase
+          .from("children").select("id,name").order("created_at").limit(1);
+        if (error) { console.error(error); return; }
+        const child = data && data[0];
+        if (!child) {
+          $("no-child").classList.remove("hidden");
+          $("child-ui").classList.add("hidden");
+          return;
+        }
+        childId = child.id;
+        $("child-name").textContent = child.name;
+        $("child-sep").classList.remove("hidden");
+        $("no-child").classList.add("hidden");
+        $("child-ui").classList.remove("hidden");
+        resetForm();
+        await loadHistory();
+      }
+
+      async function loadHistory() {
+        const { data, error } = await supabase
+          .from("introductions").select("*")
+          .order("served_on", { ascending: false })
+          .order("created_at", { ascending: false });
+        if (error) { console.error(error); return; }
+        renderHistory(data || []);
+      }
+
+      function renderHistory(rows) {
+        const ul = $("history");
+        $("history-empty").classList.toggle("hidden", rows.length > 0);
+        ul.innerHTML = "";
+        for (const row of rows) {
+          const li = document.createElement("li");
+          li.className = "rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200";
+          const parts = [fmtDate(row.served_on)];
+          if (row.amount) parts.push(AMOUNT_LABEL[row.amount] || row.amount);
+          li.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <span class="font-semibold">${esc(allergenLabel(row))}</span>
+              <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${REACTION_BADGE[row.reaction] || REACTION_BADGE.none}">
+                ${esc(row.reaction)}
+              </span>
+            </div>
+            <div class="mt-0.5 text-sm text-slate-500">${esc(parts.join(" · "))}</div>
+            ${row.notes ? `<p class="mt-2 text-sm text-slate-700 whitespace-pre-wrap">${esc(row.notes)}</p>` : ""}
+            <div class="mt-3 flex gap-4 text-sm font-medium">
+              <button data-edit="${row.id}" class="text-slate-600 underline">Edit</button>
+              <button data-del="${row.id}" class="text-red-600 underline">Delete</button>
+            </div>`;
+          li.querySelector("[data-edit]").addEventListener("click", () => fillForm(row));
+          li.querySelector("[data-del]").addEventListener("click", () => onDelete(row));
+          ul.appendChild(li);
+        }
+      }
+
+      function esc(s) {
+        return String(s ?? "").replace(/[&<>"']/g, (c) => (
+          { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+        ));
+      }
+
+      $("log-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const isOther = $("allergen").value === "__other";
+        const allergen = isOther ? $("other-allergen").value.trim() : $("allergen").value;
+        const msg = $("form-msg");
+        if (!allergen) {
+          msg.textContent = "Enter which allergen was served.";
+          msg.classList.remove("hidden");
+          return;
+        }
+        const payload = {
+          allergen,
+          is_top_nine: !isOther,
+          served_on: $("served_on").value,
+          amount: segValue("amount-group"),
+          reaction: segValue("reaction-group") || "none",
+          notes: $("notes").value.trim() || null,
+        };
+        const btn = $("save-btn");
+        btn.disabled = true;
+        btn.textContent = editingId ? "Updating…" : "Saving…";
+        let error;
+        if (editingId) {
+          ({ error } = await supabase.from("introductions").update(payload).eq("id", editingId));
+        } else {
+          ({ error } = await supabase.from("introductions").insert({
+            ...payload, child_id: childId, created_by: session.user.id,
+          }));
+        }
+        btn.disabled = false;
+        if (error) {
+          msg.textContent = error.message;
+          msg.classList.remove("hidden");
+          btn.textContent = editingId ? "Update entry" : "Save entry";
+          return;
+        }
+        resetForm();
+        await loadHistory();
+      });
+
+      async function onDelete(row) {
+        if (!confirm(`Delete the ${allergenLabel(row)} entry from ${fmtDate(row.served_on)}?`)) return;
+        const { error } = await supabase.from("introductions").delete().eq("id", row.id);
+        if (error) { alert(error.message); return; }
+        if (editingId === row.id) resetForm();
+        await loadHistory();
+      }
+
+      // ---- boot ----
+      function renderAuth(s) {
+        session = s;
+        if (s?.user) {
+          $("user-email").textContent = s.user.email;
+          show("app");
+          loadChild();
+        } else {
+          show("login");
+        }
+      }
       const { data } = await supabase.auth.getSession();
-      render(data.session);
-      supabase.auth.onAuthStateChange((_event, session) => render(session));
+      renderAuth(data.session);
+      supabase.auth.onAuthStateChange((_e, s) => renderAuth(s));
     }
   </script>
 </body>
