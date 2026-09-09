@@ -1,13 +1,12 @@
 // Supabase connection settings for the Allergen Tracker.
 //
-// These two values are safe to commit: the anon key is designed to be public
-// and every table is protected by row-level security (see supabase/migrations).
-// NEVER put the service_role key in this file or anywhere else in this repo.
+// These two values are safe to commit: the publishable/anon key is designed to
+// be public and every table is protected by row-level security (see
+// supabase/migrations). NEVER put the secret / service_role key in this repo.
 //
-// Fill these in from your Supabase project:
-//   Project Settings -> API -> Project URL   and   Project API keys -> anon / public
+// From your Supabase project: Project Settings -> API
 
 window.APP_CONFIG = {
-  SUPABASE_URL: "https://YOUR-PROJECT-REF.supabase.co",
-  SUPABASE_ANON_KEY: "YOUR-ANON-KEY",
+  SUPABASE_URL: "https://zqpzopkmnptupebhhiwo.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_Fe_e3SB1c-ZSlELv6ej7zA_o8tnDPzY",
 };
