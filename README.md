@@ -14,9 +14,10 @@ Full design rationale and phase breakdown: [BUILD-PLAN.md](BUILD-PLAN.md).
 ## Setup
 
 1. **Create a Supabase project** at [supabase.com](https://supabase.com).
-2. **Run the migration:** open the Supabase SQL editor, paste
-   [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql), run it once.
-   This creates the schema **and** the row-level security policies.
+2. **Run the migrations** in the Supabase SQL editor, in order:
+   [`0001_init.sql`](supabase/migrations/0001_init.sql) (schema, grants, RLS
+   policies) then [`0002_reexposure_threshold.sql`](supabase/migrations/0002_reexposure_threshold.sql)
+   (adds the re-exposure reminder setting).
 3. **Configure the client:** copy your Project URL and `anon` key into
    [`config.js`](config.js). Both values are safe to commit — the anon key is
    public by design and every table is guarded by RLS.
@@ -39,7 +40,7 @@ before relying on it.
 - [x] **Phase 1 — Foundation:** schema, RLS, magic-link auth
 - [x] **Phase 2 — Log and history:** log form, history list, edit/delete
 - [x] **Phase 3 — Dashboard:** top-9 grid, per-allergen status, tap-to-filter
-- [ ] Phase 4 — Re-exposure tracker
+- [x] **Phase 4 — Re-exposure tracker:** overdue highlighting + strip, configurable threshold
 - [ ] Phase 5 — Recipes
 - [ ] Phase 6 — Export
 - [ ] Phase 7 — Polish

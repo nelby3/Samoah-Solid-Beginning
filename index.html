@@ -83,14 +83,22 @@
             + Log an introduction
           </button>
 
+          <div id="attention" class="mt-4 hidden rounded-2xl border border-amber-300 bg-amber-50 p-3">
+            <p class="text-sm font-medium text-amber-900">Not served recently</p>
+            <p id="attention-list" class="mt-0.5 text-xs text-amber-800"></p>
+          </div>
+
           <section class="mt-6">
             <h2 class="text-base font-semibold">Top 9 allergens</h2>
             <div id="grid" class="mt-3 grid grid-cols-3 gap-2"></div>
-            <div class="mt-3 flex items-center gap-4 text-xs text-slate-400">
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
               <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-slate-300"></span>Not tried</span>
               <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Introduced</span>
               <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Reaction noted</span>
             </div>
+            <button id="open-settings" class="mt-4 text-xs text-slate-500 underline">
+              Re-exposure reminder: every <span id="threshold-display">7</span> days · Change
+            </button>
           </section>
 
           <section id="history-section" class="mt-8 scroll-mt-4">
@@ -175,6 +183,36 @@
           </form>
         </div>
 
+        <!-- ============ Settings screen ============ -->
+        <div id="screen-settings" class="hidden">
+          <button id="settings-back" class="mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
+
+          <div class="mt-3 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <h2 class="text-base font-semibold">Re-exposure reminder</h2>
+            <p class="text-sm text-slate-600">
+              Flag an allergen on the dashboard when it hasn't been served for at
+              least this many days.
+            </p>
+            <div>
+              <label for="threshold" class="block text-sm font-medium">Days</label>
+              <input id="threshold" type="number" min="1" max="90" inputmode="numeric"
+                class="mt-1 w-28 rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+            </div>
+            <button id="save-threshold"
+              class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white
+                     active:scale-[0.99] disabled:opacity-50">
+              Save
+            </button>
+            <p id="threshold-msg" class="hidden rounded-xl px-4 py-3 text-sm"></p>
+            <p class="rounded-xl bg-slate-100 p-3 text-xs leading-relaxed text-slate-600">
+              This is a personal reminder you choose — not medical advice, and not a
+              recommendation from this app. There is no single correct interval for
+              re-exposure. If you're unsure, ask your pediatrician.
+            </p>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -196,7 +234,7 @@
     .seg[aria-pressed="true"] { @apply border-slate-900 bg-slate-900 text-white; }
     .tile {
       @apply flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white p-3 text-left
-             ring-1 ring-slate-200 active:scale-[0.98];
+             active:scale-[0.98];
     }
   </style>
 
@@ -245,6 +283,7 @@
       let editingId = null;
       let allRows = [];
       let filterAllergen = null;
+      let thresholdDays = 7;
 
       // ---- helpers ----
       const todayLocal = () => {
@@ -270,8 +309,8 @@
           { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       function showScreen(name) {
-        $("screen-dash").classList.toggle("hidden", name !== "dash");
-        $("screen-log").classList.toggle("hidden", name !== "log");
+        for (const s of ["dash", "log", "settings"])
+          $("screen-" + s).classList.toggle("hidden", s !== name);
         window.scrollTo(0, 0);
       }
 
@@ -362,6 +401,37 @@
 
       $("new-entry-btn").addEventListener("click", () => { resetForm(); showScreen("log"); });
       $("back-btn").addEventListener("click", () => { resetForm(); showScreen("dash"); });
+      $("settings-back").addEventListener("click", () => showScreen("dash"));
+      $("open-settings").addEventListener("click", () => {
+        $("threshold").value = thresholdDays;
+        $("threshold-msg").classList.add("hidden");
+        showScreen("settings");
+      });
+
+      $("save-threshold").addEventListener("click", async () => {
+        const v = parseInt($("threshold").value, 10);
+        const msg = $("threshold-msg");
+        const setMsg = (text, kind) => {
+          msg.classList.remove("hidden");
+          msg.className = "rounded-xl px-4 py-3 text-sm " +
+            (kind === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700");
+          msg.textContent = text;
+        };
+        if (!Number.isFinite(v) || v < 1 || v > 90) {
+          setMsg("Enter a whole number of days between 1 and 90.", "error");
+          return;
+        }
+        const btn = $("save-threshold");
+        btn.disabled = true; btn.textContent = "Saving…";
+        const { error } = await db(() =>
+          supabase.from("children").update({ reexposure_threshold_days: v }).eq("id", childId));
+        btn.disabled = false; btn.textContent = "Save";
+        if (error) { setMsg(error.message, "error"); return; }
+        thresholdDays = v;
+        $("threshold-display").textContent = v;
+        renderDashboard();
+        showScreen("dash");
+      });
 
       // ---- data ----
       function showLoadError(where, error) {
@@ -387,7 +457,7 @@
       async function loadChild() {
         $("load-error").classList.add("hidden");
         const { data, error } = await db(() => supabase
-          .from("children").select("id,name").order("created_at").limit(1));
+          .from("children").select("id,name,reexposure_threshold_days").order("created_at").limit(1));
         if (error) { showLoadError("Loading child", error); return; }
         const child = data && data[0];
         if (!child) {
@@ -396,6 +466,8 @@
           return;
         }
         childId = child.id;
+        thresholdDays = child.reexposure_threshold_days ?? 7;
+        $("threshold-display").textContent = thresholdDays;
         $("child-name").textContent = child.name;
         $("child-sep").classList.remove("hidden");
         $("no-child").classList.add("hidden");
@@ -425,24 +497,45 @@
         const grid = $("grid");
         grid.innerHTML = "";
         const DOT = { never: "bg-slate-300", ok: "bg-emerald-500", reaction: "bg-amber-500" };
+        const overdue = [];
+
         for (const [id, label] of TOP9) {
           const rows = allRows.filter((r) => r.is_top_nine && r.allergen === id);
           const status = statusOf(rows);
           let sub = "Not tried yet";
+          let isOverdue = false;
           if (rows.length) {
             const latest = rows.reduce((a, b) => (a.served_on >= b.served_on ? a : b));
-            sub = `${rows.length}× · ${agoLabel(daysSince(latest.served_on))}`;
+            const d = daysSince(latest.served_on);
+            sub = `${rows.length}× · ${agoLabel(d)}`;
+            isOverdue = d >= thresholdDays;
+            if (isOverdue) overdue.push({ label, days: d });
           }
+
+          const ring = filterAllergen === id
+            ? "ring-2 ring-slate-900"
+            : isOverdue ? "ring-1 ring-amber-400" : "ring-1 ring-slate-200";
+
           const btn = document.createElement("button");
-          btn.className = "tile" + (filterAllergen === id ? " ring-2 ring-slate-900" : "");
+          btn.className = "tile " + ring + (isOverdue ? " bg-amber-50" : "");
           btn.innerHTML = `
             <div class="flex items-center gap-1.5">
               <span class="h-2 w-2 shrink-0 rounded-full ${DOT[status]}"></span>
               <span class="text-sm font-semibold leading-tight">${label}</span>
             </div>
-            <div class="mt-2 text-xs text-slate-500">${sub}</div>`;
+            <div class="mt-2 text-xs ${isOverdue ? "font-medium text-amber-700" : "text-slate-500"}">${sub}</div>`;
           btn.addEventListener("click", () => setFilter(id));
           grid.appendChild(btn);
+        }
+
+        const att = $("attention");
+        if (overdue.length) {
+          att.classList.remove("hidden");
+          $("attention-list").textContent =
+            overdue.map((o) => `${o.label} (${o.days}d)`).join(", ") +
+            ` — past your ${thresholdDays}-day reminder`;
+        } else {
+          att.classList.add("hidden");
         }
       }
 
@@ -459,8 +552,7 @@
           ? allRows.filter((r) => r.is_top_nine && r.allergen === filterAllergen)
           : allRows;
 
-        const cf = $("clear-filter");
-        cf.classList.toggle("hidden", !filterAllergen);
+        $("clear-filter").classList.toggle("hidden", !filterAllergen);
         if (filterAllergen) $("filter-label").textContent = TOP9_LABEL[filterAllergen];
 
         const empty = $("history-empty");
