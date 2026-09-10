@@ -1278,7 +1278,8 @@
             if (row && before) Object.assign(row, before);
             sortRows();
             renderAll();
-            toast("Couldn't save your changes — try again", "error");
+            console.error("update introductions", error);
+            toast("Couldn't save: " + (error.message || "unknown error"), "error");
           }
         } else {
           const tempId = "temp-" + Date.now();
@@ -1294,7 +1295,8 @@
           if (error) {
             allRows = allRows.filter((r) => r.id !== tempId);
             renderAll();
-            toast("Couldn't save that entry — try again", "error");
+            console.error("insert introductions", error, payload);
+            toast("Couldn't save: " + (error.message || "unknown error"), "error");
           } else if (data) {
             const i = allRows.findIndex((r) => r.id === tempId);
             if (i !== -1) allRows[i] = data; else allRows.push(data);
