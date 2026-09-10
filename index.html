@@ -4,7 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#0f172a" />
   <title>Allergen Tracker</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Allergens" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { theme: { extend: { fontFamily: { sans: ['system-ui', 'sans-serif'] } } } };
@@ -86,6 +93,11 @@
           <div id="attention" class="mt-4 hidden rounded-2xl border border-amber-300 bg-amber-50 p-3">
             <p class="text-sm font-medium text-amber-900">Not served recently</p>
             <p id="attention-list" class="mt-0.5 text-xs text-amber-800"></p>
+          </div>
+
+          <div id="dash-empty" class="mt-4 hidden rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
+            Nothing logged yet. Tap <span class="font-medium text-slate-700">+ Log an introduction</span>
+            to record the first one.
           </div>
 
           <section class="mt-6">
@@ -255,6 +267,11 @@
       </div>
     </section>
 
+    <!-- Toast -->
+    <div id="toast" class="pointer-events-none fixed inset-x-0 bottom-4 z-50 mx-auto hidden max-w-md px-4">
+      <div id="toast-msg" class="rounded-xl px-4 py-3 text-sm font-medium shadow-lg"></div>
+    </div>
+
     <!-- Config missing -->
     <section id="view-config" class="hidden flex-1 flex-col justify-center py-12">
       <h1 class="text-2xl font-semibold">Almost there</h1>
@@ -299,6 +316,11 @@
   </style>
 
   <script src="./config.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+    }
+  </script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -587,6 +609,28 @@
         for (const s of ["dash", "log", "settings", "recipes", "export"])
           $("screen-" + s).classList.toggle("hidden", s !== name);
         window.scrollTo(0, 0);
+      }
+
+      let toastTimer = null;
+      function toast(msg, kind) {
+        const box = $("toast"), m = $("toast-msg");
+        m.textContent = msg;
+        m.className = "rounded-xl px-4 py-3 text-sm font-medium shadow-lg " +
+          (kind === "error" ? "bg-red-600 text-white" : "bg-slate-900 text-white");
+        box.classList.remove("hidden");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => box.classList.add("hidden"), 3500);
+      }
+
+      function sortRows() {
+        allRows.sort((a, b) =>
+          a.served_on < b.served_on ? 1 : a.served_on > b.served_on ? -1 :
+          a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0);
+      }
+
+      function renderAll() {
+        renderDashboard();
+        renderHistory();
       }
 
       // ---- auth ----
@@ -894,8 +938,8 @@
           .order("created_at", { ascending: false }));
         if (error) { showLoadError("Loading history", error); return; }
         allRows = data || [];
-        renderDashboard();
-        renderHistory();
+        sortRows();
+        renderAll();
       }
 
       function statusOf(rows) {
@@ -947,6 +991,8 @@
         } else {
           att.classList.add("hidden");
         }
+
+        $("dash-empty").classList.toggle("hidden", allRows.length > 0);
       }
 
       function setFilter(id) {
@@ -1021,37 +1067,70 @@
           notes: $("notes").value.trim() || null,
           recipe_used: formRecipe || null,
         };
-        const btn = $("save-btn");
-        btn.disabled = true;
-        btn.textContent = editingId ? "Updating…" : "Saving…";
-        const { error } = await db(() =>
-          editingId
-            ? supabase.from("introductions").update(payload).eq("id", editingId)
-            : supabase.from("introductions").insert({
-                ...payload, child_id: childId, created_by: session.user.id,
-              }));
-        btn.disabled = false;
-        if (error) {
-          msg.textContent = error.message;
-          msg.classList.remove("hidden");
-          btn.textContent = editingId ? "Update entry" : "Save entry";
-          return;
-        }
+        // Optimistic: update the screen now, reconcile with the server after.
+        const id = editingId;
         resetForm();
         showScreen("dash");
-        await loadData();
+
+        if (id) {
+          const row = allRows.find((r) => r.id === id);
+          const before = row ? { ...row } : null;
+          if (row) Object.assign(row, payload);
+          sortRows();
+          renderAll();
+          const { error } = await db(() =>
+            supabase.from("introductions").update(payload).eq("id", id));
+          if (error) {
+            if (row && before) Object.assign(row, before);
+            sortRows();
+            renderAll();
+            toast("Couldn't save your changes — try again", "error");
+          }
+        } else {
+          const tempId = "temp-" + Date.now();
+          allRows.push({
+            id: tempId, child_id: childId, created_by: session.user.id,
+            created_at: new Date().toISOString(), ...payload,
+          });
+          sortRows();
+          renderAll();
+          const { data, error } = await db(() => supabase.from("introductions")
+            .insert({ ...payload, child_id: childId, created_by: session.user.id })
+            .select().single());
+          if (error) {
+            allRows = allRows.filter((r) => r.id !== tempId);
+            renderAll();
+            toast("Couldn't save that entry — try again", "error");
+          } else if (data) {
+            const i = allRows.findIndex((r) => r.id === tempId);
+            if (i !== -1) allRows[i] = data; else allRows.push(data);
+            sortRows();
+            renderAll();
+          }
+        }
       });
 
       $("delete-btn").addEventListener("click", async () => {
         if (!editingId) return;
-        const row = allRows.find((r) => r.id === editingId);
-        const what = row ? `${allergenLabel(row)} entry from ${fmtDate(row.served_on)}` : "this entry";
+        const id = editingId;
+        const idx = allRows.findIndex((r) => r.id === id);
+        const removed = idx !== -1 ? allRows[idx] : null;
+        const what = removed
+          ? `${allergenLabel(removed)} entry from ${fmtDate(removed.served_on)}`
+          : "this entry";
         if (!confirm(`Delete the ${what}?`)) return;
-        const { error } = await db(() => supabase.from("introductions").delete().eq("id", editingId));
-        if (error) { alert(error.message); return; }
+
+        allRows = allRows.filter((r) => r.id !== id);
         resetForm();
         showScreen("dash");
-        await loadData();
+        renderAll();
+
+        const { error } = await db(() => supabase.from("introductions").delete().eq("id", id));
+        if (error) {
+          if (removed) { allRows.splice(Math.min(idx, allRows.length), 0, removed); sortRows(); }
+          renderAll();
+          toast("Couldn't delete that entry — try again", "error");
+        }
       });
 
       // ---- boot ----

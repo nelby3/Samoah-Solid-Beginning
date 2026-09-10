@@ -10,6 +10,10 @@ Full design rationale and phase breakdown: [BUILD-PLAN.md](BUILD-PLAN.md).
 - **Frontend:** single `index.html`, vanilla JS, no build step. Tailwind + Supabase JS via CDN.
 - **Data + auth:** Supabase (Postgres, magic-link auth, row-level security).
 - **Hosting:** GitHub Pages from `main` branch root.
+- **PWA:** `manifest.webmanifest` + `sw.js` cache the app shell for offline use
+  and home-screen install. `sw.js` serves `index.html` network-first, so a new
+  deploy shows up on the next online load. If you change `config.js` or the
+  icons, bump `CACHE` in `sw.js` so clients pick them up.
 
 ## Setup
 
@@ -60,7 +64,7 @@ before relying on it.
 - [x] **Phase 4 — Re-exposure tracker:** overdue highlighting + strip, configurable threshold
 - [x] **Phase 5 — Recipes:** per-allergen ideas (inlined, offline), "log this" prefill
 - [x] **Phase 6 — Export:** CSV download + print/PDF summary grouped by allergen
-- [ ] Phase 7 — Polish
+- [x] **Phase 7 — Polish:** installable PWA, offline shell, optimistic writes, empty states
 
 ## Not in scope
 
