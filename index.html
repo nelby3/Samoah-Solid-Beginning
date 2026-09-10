@@ -113,8 +113,13 @@
                 Re-exposure reminder: every <span id="threshold-display">7</span> days
               </button>
               <button id="open-export" class="text-xs text-slate-500 underline">Export / print summary</button>
-              <button id="open-nutrients" class="text-xs text-slate-500 underline">Iron, zinc &amp; calcium</button>
             </div>
+          </section>
+
+          <section class="mt-6">
+            <h2 class="text-base font-semibold">Nutrient reference</h2>
+            <div id="nutrient-boxes" class="mt-3 grid grid-cols-3 gap-2"></div>
+            <p class="mt-2 text-xs text-slate-400">Foods and amounts for iron, zinc and calcium. Reference only.</p>
           </section>
 
           <section id="history-section" class="mt-8 scroll-mt-4">
@@ -309,6 +314,10 @@
     .tile {
       @apply flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white p-3 text-left
              active:scale-[0.98];
+    }
+    .ntile {
+      @apply flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-sky-50 p-3 text-left
+             ring-1 ring-sky-200 active:scale-[0.98];
     }
   </style>
 
@@ -924,7 +933,15 @@
             <tbody class="divide-y divide-slate-100">${rows}</tbody>
           </table>`;
       }
-      $("open-nutrients").addEventListener("click", () => { renderNutrientInfo("iron"); showScreen("nutrients"); });
+      for (const key of ["iron", "zinc", "calcium"]) {
+        const btn = document.createElement("button");
+        btn.className = "ntile";
+        btn.innerHTML = `
+          <div class="text-sm font-semibold leading-tight text-sky-900">${NUTRIENT_INFO[key].label}</div>
+          <div class="mt-2 text-xs text-sky-700">Foods &amp; amounts</div>`;
+        btn.addEventListener("click", () => { renderNutrientInfo(key); showScreen("nutrients"); });
+        $("nutrient-boxes").appendChild(btn);
+      }
       $("nutrients-back").addEventListener("click", () => showScreen("dash"));
       $("nutrient-tabs").addEventListener("click", (e) => {
         const b = e.target.closest("button");
