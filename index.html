@@ -96,9 +96,12 @@
               <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Introduced</span>
               <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Reaction noted</span>
             </div>
-            <button id="open-settings" class="mt-4 text-xs text-slate-500 underline">
-              Re-exposure reminder: every <span id="threshold-display">7</span> days · Change
-            </button>
+            <div class="mt-4 flex flex-wrap gap-x-5 gap-y-1">
+              <button id="open-settings" class="text-xs text-slate-500 underline">
+                Re-exposure reminder: every <span id="threshold-display">7</span> days
+              </button>
+              <button id="open-export" class="text-xs text-slate-500 underline">Export / print summary</button>
+            </div>
           </section>
 
           <section id="history-section" class="mt-8 scroll-mt-4">
@@ -233,6 +236,22 @@
           </details>
         </div>
 
+        <!-- ============ Export screen ============ -->
+        <div id="screen-export" class="hidden">
+          <button id="export-back" class="no-print mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
+          <div class="no-print mt-3 flex flex-wrap gap-2">
+            <button id="download-csv"
+              class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold active:scale-[0.98] disabled:opacity-50">
+              Download CSV
+            </button>
+            <button id="print-summary-btn"
+              class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white active:scale-[0.98] disabled:opacity-50">
+              Print / Save PDF
+            </button>
+          </div>
+          <div id="print-summary" class="mt-6"></div>
+        </div>
+
       </div>
     </section>
 
@@ -255,6 +274,27 @@
     .tile {
       @apply flex min-h-[4.75rem] flex-col justify-between rounded-2xl bg-white p-3 text-left
              active:scale-[0.98];
+    }
+  </style>
+
+  <style>
+    #print-summary h1 { font-size: 18px; font-weight: 700; }
+    #print-summary h2 { margin-top: 20px; font-size: 15px; font-weight: 600; }
+    #print-summary .meta { margin-top: 4px; font-size: 13px; color: #475569; }
+    #print-summary table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+    #print-summary th, #print-summary td {
+      text-align: left; padding: 4px 12px 4px 0; vertical-align: top; border-bottom: 1px solid #e2e8f0;
+    }
+    #print-summary th { font-weight: 600; border-bottom-color: #cbd5e1; }
+    #print-summary td:first-child { white-space: nowrap; }
+    @media print {
+      body { background: #fff; }
+      body * { visibility: hidden; }
+      #print-summary, #print-summary * { visibility: visible; }
+      #print-summary { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+      #print-summary tr, #print-summary h2 { page-break-inside: avoid; }
+      #print-summary h2 { page-break-after: avoid; }
     }
   </style>
 
@@ -529,6 +569,8 @@
       };
       const fmtDate = (iso) =>
         parseDate(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+      const fmtFull = (iso) =>
+        parseDate(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
       const daysSince = (iso) => {
         const now = new Date();
         const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -542,7 +584,7 @@
           { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       function showScreen(name) {
-        for (const s of ["dash", "log", "settings", "recipes"])
+        for (const s of ["dash", "log", "settings", "recipes", "export"])
           $("screen-" + s).classList.toggle("hidden", s !== name);
         window.scrollTo(0, 0);
       }
@@ -719,6 +761,87 @@
         showScreen("recipes");
       }
       $("see-recipes").addEventListener("click", () => { if (filterAllergen) openRecipes(filterAllergen); });
+
+      // ---- export ----
+      $("open-export").addEventListener("click", () => { renderSummary(); showScreen("export"); });
+      $("export-back").addEventListener("click", () => showScreen("dash"));
+      $("print-summary-btn").addEventListener("click", () => window.print());
+      $("download-csv").addEventListener("click", () => {
+        const csv = toCsv(allRows);
+        const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `allergen-log-${todayLocal()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+
+      function csvCell(v) {
+        v = v == null ? "" : String(v);
+        return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+      }
+      function toCsv(rows) {
+        const head = ["served_on", "allergen", "is_top_nine", "amount", "reaction", "recipe_used", "notes", "logged_at"];
+        const sorted = [...rows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
+        const lines = [head.join(",")];
+        for (const r of sorted) {
+          lines.push([
+            r.served_on, allergenLabel(r), r.is_top_nine, r.amount || "",
+            r.reaction, r.recipe_used || "", r.notes || "", r.created_at,
+          ].map(csvCell).join(","));
+        }
+        return lines.join("\r\n");
+      }
+
+      function renderSummary() {
+        const box = $("print-summary");
+        const btns = [$("download-csv"), $("print-summary-btn")];
+        if (!allRows.length) {
+          btns.forEach((b) => (b.disabled = true));
+          box.innerHTML = `<p class="text-sm text-slate-500">Nothing logged yet — nothing to export.</p>`;
+          return;
+        }
+        btns.forEach((b) => (b.disabled = false));
+
+        const sorted = [...allRows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
+        const groups = new Map();
+        for (const r of sorted) {
+          const key = allergenLabel(r);
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(r);
+        }
+        const top9Labels = TOP9.map(([, l]) => l);
+        const order = top9Labels.filter((l) => groups.has(l))
+          .concat([...groups.keys()].filter((k) => !top9Labels.includes(k)).sort());
+
+        const first = sorted[0].served_on;
+        const last = sorted[sorted.length - 1].served_on;
+        let html =
+          `<h1>${esc($("child-name").textContent)} — allergen introduction summary</h1>` +
+          `<p class="meta">Generated ${esc(fmtFull(todayLocal()))} · ${sorted.length} ` +
+          `entr${sorted.length === 1 ? "y" : "ies"} · ${esc(fmtFull(first))} to ${esc(fmtFull(last))}</p>`;
+
+        for (const label of order) {
+          const rows = groups.get(label);
+          const reacted = rows.filter((r) => r.reaction && r.reaction !== "none").length;
+          html +=
+            `<h2>${esc(label)} — ${rows.length}×${reacted ? `, ${reacted} with a reaction` : ""}</h2>` +
+            `<table><thead><tr><th>Date</th><th>Amount</th><th>Reaction</th><th>Notes</th></tr></thead><tbody>`;
+          for (const r of rows) {
+            const note = [r.notes, r.recipe_used ? `Recipe: ${r.recipe_used}` : ""].filter(Boolean).join(" · ");
+            html +=
+              `<tr><td>${esc(fmtFull(r.served_on))}</td>` +
+              `<td>${esc(r.amount ? (AMOUNT_LABEL[r.amount] || r.amount) : "—")}</td>` +
+              `<td>${esc(r.reaction)}</td>` +
+              `<td>${esc(note)}</td></tr>`;
+          }
+          html += `</tbody></table>`;
+        }
+        box.innerHTML = html;
+      }
 
       // ---- data ----
       function showLoadError(where, error) {

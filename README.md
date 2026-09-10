@@ -59,7 +59,7 @@ before relying on it.
 - [x] **Phase 3 — Dashboard:** top-9 grid, per-allergen status, tap-to-filter
 - [x] **Phase 4 — Re-exposure tracker:** overdue highlighting + strip, configurable threshold
 - [x] **Phase 5 — Recipes:** per-allergen ideas (inlined, offline), "log this" prefill
-- [ ] Phase 6 — Export
+- [x] **Phase 6 — Export:** CSV download + print/PDF summary grouped by allergen
 - [ ] Phase 7 — Polish
 
 ## Not in scope
