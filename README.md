@@ -19,11 +19,9 @@ Full design rationale and phase breakdown: [BUILD-PLAN.md](BUILD-PLAN.md).
 
 1. **Create a Supabase project** at [supabase.com](https://supabase.com).
 2. **Run the migrations** in the Supabase SQL editor, in order:
-   [`0001_init.sql`](supabase/migrations/0001_init.sql) (schema, grants, RLS),
-   [`0002_reexposure_threshold.sql`](supabase/migrations/0002_reexposure_threshold.sql)
-   (re-exposure reminder setting), then
-   [`0003_nutrients.sql`](supabase/migrations/0003_nutrients.sql)
-   (iron & zinc tracking).
+   [`0001_init.sql`](supabase/migrations/0001_init.sql) (schema, grants, RLS
+   policies) then [`0002_reexposure_threshold.sql`](supabase/migrations/0002_reexposure_threshold.sql)
+   (adds the re-exposure reminder setting).
 3. **Configure the client:** copy your Project URL and `anon` key into
    [`config.js`](config.js). Both values are safe to commit — the anon key is
    public by design and every table is guarded by RLS.
@@ -67,13 +65,6 @@ before relying on it.
 - [x] **Phase 5 — Recipes:** per-allergen ideas (inlined, offline), "log this" prefill
 - [x] **Phase 6 — Export:** CSV download + print/PDF summary grouped by allergen
 - [x] **Phase 7 — Polish:** installable PWA, offline shell, optimistic writes, empty states
-
-### Added later
-
-- **Iron & zinc tracking** — dashboard tiles + a per-nutrient screen with cited
-  daily-serving guidance ([CDC](https://www.cdc.gov/infant-toddler-nutrition/vitamins-minerals/iron.html),
-  [WHO](https://www.ncbi.nlm.nih.gov/books/NBK596430/)), 10 common foods each, and
-  a serving log. Flag interval is a setting (`nutrient_reminder_days`, default 1).
 
 ## Not in scope
 

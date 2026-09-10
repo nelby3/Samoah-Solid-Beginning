@@ -91,9 +91,8 @@
           </button>
 
           <div id="attention" class="mt-4 hidden rounded-2xl border border-amber-300 bg-amber-50 p-3">
-            <p class="text-sm font-medium text-amber-900">Needs a look</p>
-            <p id="attention-list" class="mt-0.5 hidden text-xs text-amber-800"></p>
-            <p id="attention-nutrients" class="mt-0.5 hidden text-xs text-amber-800"></p>
+            <p class="text-sm font-medium text-amber-900">Not served recently</p>
+            <p id="attention-list" class="mt-0.5 text-xs text-amber-800"></p>
           </div>
 
           <div id="dash-empty" class="mt-4 hidden rounded-2xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
@@ -115,14 +114,6 @@
               </button>
               <button id="open-export" class="text-xs text-slate-500 underline">Export / print summary</button>
             </div>
-          </section>
-
-          <section class="mt-8">
-            <h2 class="text-base font-semibold">Iron &amp; zinc</h2>
-            <div id="nutrient-grid" class="mt-3 grid grid-cols-2 gap-2"></div>
-            <p class="mt-2 text-xs text-slate-400">
-              Aim for a serving of each every day. Tap a tile for foods and details.
-            </p>
           </section>
 
           <section id="history-section" class="mt-8 scroll-mt-4">
@@ -243,31 +234,6 @@
               re-exposure. If you're unsure, ask your pediatrician.
             </p>
           </div>
-
-          <div class="mt-4 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-            <h2 class="text-base font-semibold">Iron &amp; zinc reminder</h2>
-            <p class="text-sm text-slate-600">
-              Flag iron or zinc on the dashboard when a serving hasn't been logged
-              for at least this many days.
-            </p>
-            <div>
-              <label for="nutrient-threshold" class="block text-sm font-medium">Days</label>
-              <input id="nutrient-threshold" type="number" min="1" max="30" inputmode="numeric"
-                class="mt-1 w-28 rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
-            </div>
-            <button id="save-nutrient-threshold"
-              class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white
-                     active:scale-[0.99] disabled:opacity-50">
-              Save
-            </button>
-            <p id="nutrient-threshold-msg" class="hidden rounded-xl px-4 py-3 text-sm"></p>
-            <p class="rounded-xl bg-slate-100 p-3 text-xs leading-relaxed text-slate-600">
-              Public-health guidance (CDC, WHO, AAP) suggests offering an iron-rich
-              and a zinc-rich food each day from around 6 months. This reminder is
-              yours to set; confirm what's right for your baby with your pediatrician.
-            </p>
-          </div>
         </div>
 
         <!-- ============ Recipes screen ============ -->
@@ -282,85 +248,13 @@
           </details>
         </div>
 
-        <!-- ============ Nutrient detail screen ============ -->
-        <div id="screen-nutrient" class="hidden">
-          <button id="nutrient-back" class="mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
-          <h2 id="nutrient-title" class="mt-3 text-lg font-semibold"></h2>
-
-          <div class="mt-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-            <p id="nutrient-aim" class="text-sm text-slate-700"></p>
-            <p id="nutrient-rda" class="mt-2 text-xs text-slate-500"></p>
-            <p id="nutrient-vitc" class="mt-2 hidden rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800"></p>
-            <p class="mt-2 text-xs text-slate-400">
-              General guidance from
-              <a id="nutrient-source" href="#" target="_blank" rel="noopener" class="underline"></a>,
-              not personalised advice — confirm with your pediatrician.
-            </p>
-          </div>
-
-          <button id="nutrient-new-btn"
-            class="mt-4 w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white active:scale-[0.99]">
-            + Log a serving
-          </button>
-
-          <section class="mt-6">
-            <h3 class="text-sm font-semibold">Recent servings</h3>
-            <p id="nutrient-servings-empty" class="mt-2 hidden text-sm text-slate-500">Nothing logged yet.</p>
-            <ul id="nutrient-servings" class="mt-2 space-y-2"></ul>
-          </section>
-
-          <section class="mt-6">
-            <h3 id="nutrient-foods-title" class="text-sm font-semibold"></h3>
-            <ul id="nutrient-foods" class="mt-2 space-y-2"></ul>
-          </section>
-        </div>
-
-        <!-- ============ Nutrient log / edit screen ============ -->
-        <div id="screen-nutrient-log" class="hidden">
-          <button id="nutrient-log-back" class="mt-5 text-sm font-medium text-slate-500">← Back</button>
-          <form id="nutrient-form" class="mt-3 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-            <h2 id="nutrient-form-title" class="text-base font-semibold">Log a serving</h2>
-            <div>
-              <label for="nutrient-served-on" class="block text-sm font-medium">Date served</label>
-              <input id="nutrient-served-on" type="date" required
-                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
-            </div>
-            <div>
-              <label for="nutrient-food" class="block text-sm font-medium">Food <span class="text-slate-400">(optional)</span></label>
-              <input id="nutrient-food" type="text" placeholder="e.g. lentil puree"
-                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
-            </div>
-            <div>
-              <label for="nutrient-notes" class="block text-sm font-medium">Notes <span class="text-slate-400">(optional)</span></label>
-              <textarea id="nutrient-notes" rows="2"
-                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"></textarea>
-            </div>
-            <button type="submit" id="nutrient-save-btn"
-              class="w-full rounded-xl bg-slate-900 px-4 py-3 text-base font-semibold text-white active:scale-[0.99] disabled:opacity-50">
-              Save serving
-            </button>
-            <button type="button" id="nutrient-delete-btn"
-              class="hidden w-full rounded-xl border border-red-300 px-4 py-3 text-base font-semibold text-red-600 active:scale-[0.99]">
-              Delete serving
-            </button>
-            <p id="nutrient-form-msg" class="hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"></p>
-          </form>
-        </div>
-
         <!-- ============ Export screen ============ -->
         <div id="screen-export" class="hidden">
           <button id="export-back" class="no-print mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
           <div class="no-print mt-3 flex flex-wrap gap-2">
             <button id="download-csv"
               class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold active:scale-[0.98] disabled:opacity-50">
-              Allergen CSV
-            </button>
-            <button id="download-nutrient-csv"
-              class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold active:scale-[0.98] disabled:opacity-50">
-              Iron/zinc CSV
+              Download CSV
             </button>
             <button id="print-summary-btn"
               class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white active:scale-[0.98] disabled:opacity-50">
@@ -642,51 +536,6 @@
 };
     const RECIPES = Object.fromEntries(RECIPE_SEED.allergens.map((a) => [a.id, a]));
 
-    // Iron & zinc: widely published complementary-feeding guidance (CDC / WHO / AAP).
-    // Shown as cited context; the dashboard flag interval is a user setting.
-    const NUTRIENTS = {
-      iron: {
-        label: "Iron",
-        aim: "Offer an iron-rich food every day — ideally at two or more meals. Breast milk is low in iron and a baby's own stores run low around 6 months, so iron-rich solids matter from the start.",
-        rda: "Recommended intake at 7–12 months: about 11 mg a day.",
-        source: "CDC infant nutrition",
-        sourceUrl: "https://www.cdc.gov/infant-toddler-nutrition/vitamins-minerals/iron.html",
-        vitc: "Pair plant iron (beans, lentils, greens, cereal) with a vitamin-C food — berries, citrus, tomato, bell pepper, broccoli — to boost absorption.",
-        foods: [
-          "Iron-fortified infant cereal, mixed to a smooth porridge",
-          "Pureed or finely shredded beef",
-          "Dark-meat chicken or turkey, minced",
-          "Well-cooked mashed lentils",
-          "Mashed beans — black, kidney, or chickpea",
-          "Soft tofu, mashed or in strips",
-          "Cooked egg, including the yolk",
-          "Cooked, finely chopped dark leafy greens (spinach, kale)",
-          "Flaked, deboned salmon or trout",
-          "Smooth prune puree (also helps with iron-related constipation)",
-        ],
-      },
-      zinc: {
-        label: "Zinc",
-        aim: "Offer a zinc-rich food every day. As with iron, breast-milk zinc isn't enough after about 6 months, and meat and other animal foods are the richest sources.",
-        rda: "Recommended intake at 7–12 months: about 3 mg a day.",
-        source: "WHO complementary feeding guideline",
-        sourceUrl: "https://www.ncbi.nlm.nih.gov/books/NBK596430/",
-        vitc: null,
-        foods: [
-          "Pureed or finely shredded beef",
-          "Well-cooked minced pork",
-          "Dark-meat chicken or turkey",
-          "Zinc-fortified infant cereal",
-          "Mashed beans — chickpea, kidney, or black",
-          "Well-cooked mashed lentils",
-          "Full-fat plain yogurt or grated cheese",
-          "Soft tofu, mashed",
-          "Smooth pumpkin or sunflower seed butter, thinned",
-          "Cooked oats as a soft porridge",
-        ],
-      },
-    };
-
     const $ = (id) => document.getElementById(id);
     const views = {
       loading: $("view-loading"), login: $("view-login"),
@@ -730,10 +579,6 @@
       let filterAllergen = null;
       let thresholdDays = 7;
       let formRecipe = null;
-      let nutrientRows = [];
-      let nutrientReminderDays = 1;
-      let currentNutrient = null;
-      let editingNutrientId = null;
 
       // ---- helpers ----
       const todayLocal = () => {
@@ -761,7 +606,7 @@
           { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       function showScreen(name) {
-        for (const s of ["dash", "log", "settings", "recipes", "export", "nutrient", "nutrient-log"])
+        for (const s of ["dash", "log", "settings", "recipes", "export"])
           $("screen-" + s).classList.toggle("hidden", s !== name);
         window.scrollTo(0, 0);
       }
@@ -777,23 +622,15 @@
         toastTimer = setTimeout(() => box.classList.add("hidden"), 3500);
       }
 
-      const byRecency = (a, b) =>
-        a.served_on < b.served_on ? 1 : a.served_on > b.served_on ? -1 :
-        a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0;
-      function sortRows() { allRows.sort(byRecency); }
-      function sortNutrientRows() { nutrientRows.sort(byRecency); }
+      function sortRows() {
+        allRows.sort((a, b) =>
+          a.served_on < b.served_on ? 1 : a.served_on > b.served_on ? -1 :
+          a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0);
+      }
 
       function renderAll() {
         renderDashboard();
-        renderNutrients();
         renderHistory();
-      }
-
-      function updateAttentionBox() {
-        const shown =
-          !$("attention-list").classList.contains("hidden") ||
-          !$("attention-nutrients").classList.contains("hidden");
-        $("attention").classList.toggle("hidden", !shown);
       }
 
       // ---- auth ----
@@ -896,16 +733,9 @@
       $("back-btn").addEventListener("click", () => { resetForm(); showScreen("dash"); });
       $("settings-back").addEventListener("click", () => showScreen("dash"));
       $("recipes-back").addEventListener("click", () => showScreen("dash"));
-      $("nutrient-back").addEventListener("click", () => showScreen("dash"));
-      $("nutrient-log-back").addEventListener("click", () => showScreen("nutrient"));
-      $("nutrient-new-btn").addEventListener("click", () => {
-        if (currentNutrient) openNutrientLog(currentNutrient, "");
-      });
       $("open-settings").addEventListener("click", () => {
         $("threshold").value = thresholdDays;
         $("threshold-msg").classList.add("hidden");
-        $("nutrient-threshold").value = nutrientReminderDays;
-        $("nutrient-threshold-msg").classList.add("hidden");
         showScreen("settings");
       });
 
@@ -932,98 +762,6 @@
         $("threshold-display").textContent = v;
         renderDashboard();
         showScreen("dash");
-      });
-
-      $("save-nutrient-threshold").addEventListener("click", async () => {
-        const v = parseInt($("nutrient-threshold").value, 10);
-        const msg = $("nutrient-threshold-msg");
-        const setMsg = (text, kind) => {
-          msg.classList.remove("hidden");
-          msg.className = "rounded-xl px-4 py-3 text-sm " +
-            (kind === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700");
-          msg.textContent = text;
-        };
-        if (!Number.isFinite(v) || v < 1 || v > 30) {
-          setMsg("Enter a whole number of days between 1 and 30.", "error");
-          return;
-        }
-        const btn = $("save-nutrient-threshold");
-        btn.disabled = true; btn.textContent = "Saving…";
-        const { error } = await db(() =>
-          supabase.from("children").update({ nutrient_reminder_days: v }).eq("id", childId));
-        btn.disabled = false; btn.textContent = "Save";
-        if (error) { setMsg(error.message, "error"); return; }
-        nutrientReminderDays = v;
-        renderNutrients();
-        showScreen("dash");
-      });
-
-      $("nutrient-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const payload = {
-          nutrient: currentNutrient,
-          served_on: $("nutrient-served-on").value,
-          food: $("nutrient-food").value.trim() || null,
-          notes: $("nutrient-notes").value.trim() || null,
-        };
-        const id = editingNutrientId;
-        editingNutrientId = null;
-        showScreen("nutrient");
-
-        if (id) {
-          const row = nutrientRows.find((r) => r.id === id);
-          const before = row ? { ...row } : null;
-          if (row) Object.assign(row, payload);
-          sortNutrientRows();
-          afterNutrientChange();
-          const { error } = await db(() =>
-            supabase.from("nutrient_servings").update(payload).eq("id", id));
-          if (error) {
-            if (row && before) Object.assign(row, before);
-            sortNutrientRows();
-            afterNutrientChange();
-            toast("Couldn't save that serving — try again", "error");
-          }
-        } else {
-          const tempId = "temp-" + Date.now();
-          nutrientRows.push({
-            id: tempId, child_id: childId, created_by: session.user.id,
-            created_at: new Date().toISOString(), ...payload,
-          });
-          sortNutrientRows();
-          afterNutrientChange();
-          const { data, error } = await db(() => supabase.from("nutrient_servings")
-            .insert({ ...payload, child_id: childId, created_by: session.user.id })
-            .select().single());
-          if (error) {
-            nutrientRows = nutrientRows.filter((r) => r.id !== tempId);
-            afterNutrientChange();
-            toast("Couldn't save that serving — try again", "error");
-          } else if (data) {
-            const i = nutrientRows.findIndex((r) => r.id === tempId);
-            if (i !== -1) nutrientRows[i] = data; else nutrientRows.push(data);
-            sortNutrientRows();
-            afterNutrientChange();
-          }
-        }
-      });
-
-      $("nutrient-delete-btn").addEventListener("click", async () => {
-        if (!editingNutrientId) return;
-        const id = editingNutrientId;
-        const idx = nutrientRows.findIndex((r) => r.id === id);
-        const removed = idx !== -1 ? nutrientRows[idx] : null;
-        if (!confirm("Delete this serving?")) return;
-        nutrientRows = nutrientRows.filter((r) => r.id !== id);
-        editingNutrientId = null;
-        showScreen("nutrient");
-        afterNutrientChange();
-        const { error } = await db(() => supabase.from("nutrient_servings").delete().eq("id", id));
-        if (error) {
-          if (removed) { nutrientRows.splice(Math.min(idx, nutrientRows.length), 0, removed); sortNutrientRows(); }
-          afterNutrientChange();
-          toast("Couldn't delete that serving — try again", "error");
-        }
       });
 
       // ---- recipes ----
@@ -1072,21 +810,18 @@
       $("open-export").addEventListener("click", () => { renderSummary(); showScreen("export"); });
       $("export-back").addEventListener("click", () => showScreen("dash"));
       $("print-summary-btn").addEventListener("click", () => window.print());
-      function downloadCsv(name, csv) {
+      $("download-csv").addEventListener("click", () => {
+        const csv = toCsv(allRows);
         const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = name;
+        a.download = `allergen-log-${todayLocal()}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }
-      $("download-csv").addEventListener("click", () =>
-        downloadCsv(`allergen-log-${todayLocal()}.csv`, toCsv(allRows)));
-      $("download-nutrient-csv").addEventListener("click", () =>
-        downloadCsv(`iron-zinc-log-${todayLocal()}.csv`, toNutrientCsv(nutrientRows)));
+      });
 
       function csvCell(v) {
         v = v == null ? "" : String(v);
@@ -1104,36 +839,17 @@
         }
         return lines.join("\r\n");
       }
-      function toNutrientCsv(rows) {
-        const head = ["served_on", "nutrient", "food", "notes", "logged_at"];
-        const sorted = [...rows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
-        const lines = [head.join(",")];
-        for (const r of sorted) {
-          lines.push([r.served_on, r.nutrient, r.food || "", r.notes || "", r.created_at].map(csvCell).join(","));
-        }
-        return lines.join("\r\n");
-      }
 
       function renderSummary() {
         const box = $("print-summary");
-        $("download-csv").disabled = !allRows.length;
-        $("download-nutrient-csv").disabled = !nutrientRows.length;
-        $("print-summary-btn").disabled = !allRows.length && !nutrientRows.length;
-        if (!allRows.length && !nutrientRows.length) {
+        const btns = [$("download-csv"), $("print-summary-btn")];
+        if (!allRows.length) {
+          btns.forEach((b) => (b.disabled = true));
           box.innerHTML = `<p class="text-sm text-slate-500">Nothing logged yet — nothing to export.</p>`;
           return;
         }
+        btns.forEach((b) => (b.disabled = false));
 
-        const childName = esc($("child-name").textContent);
-        let html = `<h1>${childName} — feeding summary</h1>`;
-        html += `<p class="meta">Generated ${esc(fmtFull(todayLocal()))}</p>`;
-        html += renderAllergenSummary();
-        html += renderNutrientSummary();
-        box.innerHTML = html;
-      }
-
-      function renderAllergenSummary() {
-        if (!allRows.length) return "";
         const sorted = [...allRows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
         const groups = new Map();
         for (const r of sorted) {
@@ -1148,8 +864,8 @@
         const first = sorted[0].served_on;
         const last = sorted[sorted.length - 1].served_on;
         let html =
-          `<h2 style="margin-top:14px">Allergen introductions</h2>` +
-          `<p class="meta">${sorted.length} ` +
+          `<h1>${esc($("child-name").textContent)} — allergen introduction summary</h1>` +
+          `<p class="meta">Generated ${esc(fmtFull(todayLocal()))} · ${sorted.length} ` +
           `entr${sorted.length === 1 ? "y" : "ies"} · ${esc(fmtFull(first))} to ${esc(fmtFull(last))}</p>`;
 
         for (const label of order) {
@@ -1168,28 +884,7 @@
           }
           html += `</tbody></table>`;
         }
-        return html;
-      }
-
-      function renderNutrientSummary() {
-        if (!nutrientRows.length) return "";
-        const sorted = [...nutrientRows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
-        let html = `<h2 style="margin-top:22px">Iron &amp; zinc servings</h2>`;
-        for (const key of ["iron", "zinc"]) {
-          const rows = sorted.filter((r) => r.nutrient === key);
-          if (!rows.length) continue;
-          html +=
-            `<h2>${NUTRIENTS[key].label} — ${rows.length} logged</h2>` +
-            `<table><thead><tr><th>Date</th><th>Food</th><th>Notes</th></tr></thead><tbody>`;
-          for (const r of rows) {
-            html +=
-              `<tr><td>${esc(fmtFull(r.served_on))}</td>` +
-              `<td>${esc(r.food || "—")}</td>` +
-              `<td>${esc(r.notes || "")}</td></tr>`;
-          }
-          html += `</tbody></table>`;
-        }
-        return html;
+        box.innerHTML = html;
       }
 
       // ---- data ----
@@ -1216,9 +911,7 @@
       async function loadChild() {
         $("load-error").classList.add("hidden");
         const { data, error } = await db(() => supabase
-          .from("children")
-          .select("id,name,reexposure_threshold_days,nutrient_reminder_days")
-          .order("created_at").limit(1));
+          .from("children").select("id,name,reexposure_threshold_days").order("created_at").limit(1));
         if (error) { showLoadError("Loading child", error); return; }
         const child = data && data[0];
         if (!child) {
@@ -1228,7 +921,6 @@
         }
         childId = child.id;
         thresholdDays = child.reexposure_threshold_days ?? 7;
-        nutrientReminderDays = child.nutrient_reminder_days ?? 1;
         $("threshold-display").textContent = thresholdDays;
         $("child-name").textContent = child.name;
         $("child-sep").classList.remove("hidden");
@@ -1240,20 +932,13 @@
       }
 
       async function loadData() {
-        const [intro, nutr] = await Promise.all([
-          db(() => supabase.from("introductions").select("*")
-            .order("served_on", { ascending: false })
-            .order("created_at", { ascending: false })),
-          db(() => supabase.from("nutrient_servings").select("*")
-            .order("served_on", { ascending: false })
-            .order("created_at", { ascending: false })),
-        ]);
-        if (intro.error) { showLoadError("Loading history", intro.error); return; }
-        if (nutr.error) { showLoadError("Loading iron/zinc", nutr.error); return; }
-        allRows = intro.data || [];
-        nutrientRows = nutr.data || [];
+        const { data, error } = await db(() => supabase
+          .from("introductions").select("*")
+          .order("served_on", { ascending: false })
+          .order("created_at", { ascending: false }));
+        if (error) { showLoadError("Loading history", error); return; }
+        allRows = data || [];
         sortRows();
-        sortNutrientRows();
         renderAll();
       }
 
@@ -1297,143 +982,17 @@
           grid.appendChild(btn);
         }
 
-        const att = $("attention-list");
+        const att = $("attention");
         if (overdue.length) {
           att.classList.remove("hidden");
-          att.textContent =
-            "Allergens not served in a while: " +
+          $("attention-list").textContent =
             overdue.map((o) => `${o.label} (${o.days}d)`).join(", ") +
             ` — past your ${thresholdDays}-day reminder`;
         } else {
           att.classList.add("hidden");
         }
-        updateAttentionBox();
 
-        $("dash-empty").classList.toggle("hidden", allRows.length > 0 || nutrientRows.length > 0);
-      }
-
-      function renderNutrients() {
-        const grid = $("nutrient-grid");
-        grid.innerHTML = "";
-        const overdue = [];
-
-        for (const key of ["iron", "zinc"]) {
-          const n = NUTRIENTS[key];
-          const rows = nutrientRows.filter((r) => r.nutrient === key);
-          let sub = "None logged yet";
-          let flag = false;
-          if (rows.length) {
-            const latest = rows.reduce((a, b) => (a.served_on >= b.served_on ? a : b));
-            const last = daysSince(latest.served_on);
-            const week = new Set(
-              rows.filter((r) => daysSince(r.served_on) <= 6).map((r) => r.served_on)
-            ).size;
-            sub = `${agoLabel(last)} · ${week}/7 days`;
-            flag = last > nutrientReminderDays;
-            if (flag) overdue.push({ label: n.label, last });
-          }
-
-          const btn = document.createElement("button");
-          btn.className = "tile " + (flag ? "ring-1 ring-amber-400 bg-amber-50" : "ring-1 ring-slate-200");
-          btn.innerHTML = `
-            <div class="text-sm font-semibold">${n.label}</div>
-            <div class="mt-2 text-xs ${flag ? "font-medium text-amber-700" : "text-slate-500"}">${sub}</div>`;
-          btn.addEventListener("click", () => openNutrient(key));
-          grid.appendChild(btn);
-        }
-
-        const el = $("attention-nutrients");
-        if (overdue.length) {
-          el.classList.remove("hidden");
-          el.textContent =
-            "Iron/zinc: " +
-            overdue.map((o) => `${o.label} (${agoLabel(o.last)})`).join(", ");
-        } else {
-          el.classList.add("hidden");
-        }
-        updateAttentionBox();
-      }
-
-      function openNutrient(key) {
-        currentNutrient = key;
-        const n = NUTRIENTS[key];
-        $("nutrient-title").textContent = n.label;
-        $("nutrient-aim").textContent = n.aim;
-        $("nutrient-rda").textContent = n.rda;
-        $("nutrient-source").textContent = n.source;
-        $("nutrient-source").href = n.sourceUrl;
-        const vitc = $("nutrient-vitc");
-        vitc.classList.toggle("hidden", !n.vitc);
-        vitc.textContent = n.vitc || "";
-        $("nutrient-foods-title").textContent = `Common ${n.label.toLowerCase()}-rich foods`;
-
-        const fl = $("nutrient-foods");
-        fl.innerHTML = "";
-        for (const food of n.foods) {
-          const li = document.createElement("li");
-          li.className =
-            "flex items-start justify-between gap-3 rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200";
-          li.innerHTML = `
-            <span class="text-sm text-slate-700">${esc(food)}</span>
-            <button data-log class="shrink-0 text-xs font-semibold text-slate-900 underline">Log this</button>`;
-          li.querySelector("[data-log]").addEventListener("click", () => openNutrientLog(key, food));
-          fl.appendChild(li);
-        }
-
-        renderNutrientServings();
-        showScreen("nutrient");
-      }
-
-      function renderNutrientServings() {
-        const rows = nutrientRows.filter((r) => r.nutrient === currentNutrient);
-        $("nutrient-servings-empty").classList.toggle("hidden", rows.length > 0);
-        const ul = $("nutrient-servings");
-        ul.innerHTML = "";
-        for (const r of rows.slice(0, 40)) {
-          const li = document.createElement("li");
-          li.className = "rounded-xl bg-white p-3 ring-1 ring-slate-200";
-          li.innerHTML = `
-            <div class="flex items-center justify-between">
-              <span class="text-sm font-medium">${esc(fmtDate(r.served_on))}</span>
-              <button data-edit class="text-xs font-medium text-slate-600 underline">Edit</button>
-            </div>
-            ${r.food ? `<div class="mt-0.5 text-sm text-slate-600">${esc(r.food)}</div>` : ""}
-            ${r.notes ? `<div class="mt-0.5 text-xs text-slate-400 whitespace-pre-wrap">${esc(r.notes)}</div>` : ""}`;
-          li.querySelector("[data-edit]").addEventListener("click", () => fillNutrientForm(r));
-          ul.appendChild(li);
-        }
-      }
-
-      function openNutrientLog(key, food) {
-        editingNutrientId = null;
-        currentNutrient = key;
-        $("nutrient-form-title").textContent = `Log ${NUTRIENTS[key].label.toLowerCase()} serving`;
-        $("nutrient-served-on").value = todayLocal();
-        $("nutrient-food").value = food || "";
-        $("nutrient-notes").value = "";
-        $("nutrient-save-btn").textContent = "Save serving";
-        $("nutrient-delete-btn").classList.add("hidden");
-        $("nutrient-form-msg").classList.add("hidden");
-        showScreen("nutrient-log");
-      }
-
-      function fillNutrientForm(r) {
-        editingNutrientId = r.id;
-        currentNutrient = r.nutrient;
-        $("nutrient-form-title").textContent = `Edit ${NUTRIENTS[r.nutrient].label.toLowerCase()} serving`;
-        $("nutrient-served-on").value = r.served_on;
-        $("nutrient-food").value = r.food || "";
-        $("nutrient-notes").value = r.notes || "";
-        $("nutrient-save-btn").textContent = "Update serving";
-        $("nutrient-delete-btn").classList.remove("hidden");
-        $("nutrient-form-msg").classList.add("hidden");
-        showScreen("nutrient-log");
-      }
-
-      function afterNutrientChange() {
-        renderNutrients();
-        renderDashboard();
-        if (currentNutrient) renderNutrientServings();
+        $("dash-empty").classList.toggle("hidden", allRows.length > 0);
       }
 
       function setFilter(id) {
