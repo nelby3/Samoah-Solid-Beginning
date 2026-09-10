@@ -28,6 +28,23 @@ Full design rationale and phase breakdown: [BUILD-PLAN.md](BUILD-PLAN.md).
    `0001_init.sql` to insert one `children` row and link both adults.
 6. **Enable GitHub Pages:** repo Settings → Pages → deploy from `main` / root.
 
+## Editing recipes
+
+Recipe ideas live in [`recipes-seed.json`](recipes-seed.json) and are **inlined
+into `index.html`** so the app works offline (no `fetch`). After editing the
+JSON, re-inline it:
+
+```bash
+python3 - <<'PY'
+import pathlib, re
+seed = pathlib.Path("recipes-seed.json").read_text().strip()
+html = pathlib.Path("index.html").read_text()
+html = re.sub(r"const RECIPE_SEED = \{.*?\n\};",
+              "const RECIPE_SEED = " + seed + ";", html, count=1, flags=re.S)
+pathlib.Path("index.html").write_text(html)
+PY
+```
+
 ## Security model
 
 The anon key ships in public HTML, so row-level security *is* the access
@@ -41,7 +58,7 @@ before relying on it.
 - [x] **Phase 2 — Log and history:** log form, history list, edit/delete
 - [x] **Phase 3 — Dashboard:** top-9 grid, per-allergen status, tap-to-filter
 - [x] **Phase 4 — Re-exposure tracker:** overdue highlighting + strip, configurable threshold
-- [ ] Phase 5 — Recipes
+- [x] **Phase 5 — Recipes:** per-allergen ideas (inlined, offline), "log this" prefill
 - [ ] Phase 6 — Export
 - [ ] Phase 7 — Polish
 

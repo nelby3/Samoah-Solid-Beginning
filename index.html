@@ -109,6 +109,8 @@
                 <span id="filter-label"></span> ✕
               </button>
             </div>
+            <button id="see-recipes"
+              class="mt-3 hidden w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium active:scale-[0.98]"></button>
             <p id="history-empty" class="mt-3 hidden text-sm text-slate-500"></p>
             <ul id="history" class="mt-3 space-y-3"></ul>
           </section>
@@ -120,6 +122,12 @@
 
           <form id="log-form" class="mt-3 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
             <h2 id="form-title" class="text-base font-semibold">Log an introduction</h2>
+
+            <div id="recipe-chip" class="hidden rounded-xl bg-slate-100 px-3 py-2 text-sm">
+              <span class="text-slate-500">From recipe:</span>
+              <span id="recipe-chip-name" class="font-medium"></span>
+              <button type="button" id="recipe-chip-clear" class="ml-1 text-slate-400">✕</button>
+            </div>
 
             <div>
               <label for="allergen" class="block text-sm font-medium">Allergen</label>
@@ -213,6 +221,18 @@
           </div>
         </div>
 
+        <!-- ============ Recipes screen ============ -->
+        <div id="screen-recipes" class="hidden">
+          <button id="recipes-back" class="mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
+          <h2 id="recipes-title" class="mt-3 text-lg font-semibold"></h2>
+          <p id="recipes-note" class="mt-1 text-xs text-slate-500"></p>
+          <div id="recipes-list" class="mt-4 space-y-3"></div>
+          <details class="mt-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
+            <summary class="cursor-pointer text-sm font-medium text-slate-700">How these were prepared</summary>
+            <ul id="recipes-safety" class="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-500"></ul>
+          </details>
+        </div>
+
       </div>
     </section>
 
@@ -241,6 +261,218 @@
   <script src="./config.js"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    // Recipes are inlined (not fetched) so the app works offline. Source: recipes-seed.json
+    const RECIPE_SEED = {
+  "_note": "Seed data for the allergen tracker. Prep formats only — not guidance on timing, quantity, or medical suitability. Confirm approach with your pediatrician.",
+  "_safety_rules_applied": [
+    "Nut and seed butters always thinned to a smooth, spreadable-to-runny consistency; never served in a thick glob or as whole/chopped nuts",
+    "No honey (botulism risk under 12 months)",
+    "Egg cooked fully through",
+    "Low-mercury fish only",
+    "No added salt or sugar",
+    "Cow's milk as yogurt/cheese only, not as a drink, before 12 months"
+  ],
+  "allergens": [
+    {
+      "id": "peanut",
+      "name": "Peanut",
+      "recipes": [
+        {
+          "name": "Thinned peanut butter oatmeal",
+          "prep": "Stir 1 tsp smooth peanut butter into warm oatmeal until fully dissolved and no streaks remain. Loosen with breastmilk, formula, or water to a soft porridge.",
+          "time": "5 min"
+        },
+        {
+          "name": "Peanut-banana mash",
+          "prep": "Mash a ripe banana, whisk in 1 tsp smooth peanut butter thinned with 2 tsp warm water. Serve on a pre-loaded spoon.",
+          "time": "3 min"
+        },
+        {
+          "name": "Peanut yogurt swirl",
+          "prep": "Whisk 1 tsp peanut powder or thinned peanut butter into 2 tbsp full-fat plain yogurt until smooth.",
+          "time": "2 min",
+          "note": "Also exposes dairy — log both, or use a non-dairy yogurt if isolating."
+        }
+      ]
+    },
+    {
+      "id": "egg",
+      "name": "Egg",
+      "recipes": [
+        {
+          "name": "Scrambled egg strips",
+          "prep": "Whisk one egg, cook slowly in a little olive oil until fully set, slide out flat and cut into finger-width strips.",
+          "time": "6 min"
+        },
+        {
+          "name": "Mashed yolk",
+          "prep": "Hard-boil an egg, mash the yolk with breastmilk, formula, or water to a smooth paste.",
+          "time": "12 min",
+          "note": "Yolk only — introduce white separately if you want to isolate the two proteins."
+        },
+        {
+          "name": "Veggie omelet fingers",
+          "prep": "Whisk one egg with 1 tbsp finely grated soft-cooked zucchini or sweet potato. Cook flat until set, cut into strips.",
+          "time": "8 min"
+        }
+      ]
+    },
+    {
+      "id": "dairy",
+      "name": "Dairy",
+      "recipes": [
+        {
+          "name": "Full-fat plain yogurt",
+          "prep": "Serve 2-3 tbsp unsweetened whole-milk yogurt on a pre-loaded spoon. Mash in fruit if desired.",
+          "time": "1 min"
+        },
+        {
+          "name": "Ricotta toast strips",
+          "prep": "Spread whole-milk ricotta thinly on lightly toasted bread, cut into finger-width strips.",
+          "time": "4 min",
+          "note": "Also exposes wheat."
+        },
+        {
+          "name": "Cheesy egg scramble",
+          "prep": "Fold 1 tbsp finely grated mild cheese into scrambled egg as it sets.",
+          "time": "6 min",
+          "note": "Also exposes egg."
+        }
+      ]
+    },
+    {
+      "id": "wheat",
+      "name": "Wheat",
+      "recipes": [
+        {
+          "name": "Toast strips",
+          "prep": "Lightly toast a slice of plain wheat bread, cut into finger-width strips, top with a thin layer of avocado or thinned nut butter.",
+          "time": "4 min"
+        },
+        {
+          "name": "Soft pasta spirals",
+          "prep": "Boil fusilli or rotini past al dente until very soft. Toss with a little olive oil and serve whole for grasping.",
+          "time": "12 min"
+        },
+        {
+          "name": "Cream of wheat porridge",
+          "prep": "Cook farina with water, breastmilk, or formula to a soft porridge. Stir in fruit puree.",
+          "time": "6 min"
+        }
+      ]
+    },
+    {
+      "id": "soy",
+      "name": "Soy",
+      "recipes": [
+        {
+          "name": "Roasted tofu strips",
+          "prep": "Cut firm tofu into finger-width strips, roast at 400F for 20 min until edges firm enough to hold. Cool fully.",
+          "time": "25 min"
+        },
+        {
+          "name": "Edamame mash",
+          "prep": "Steam shelled edamame until very soft, mash thoroughly with a fork, loosen with water. Ensure no whole beans or skins remain.",
+          "time": "10 min"
+        },
+        {
+          "name": "Soy yogurt with fruit",
+          "prep": "Stir mashed fruit into 2-3 tbsp unsweetened plain soy yogurt.",
+          "time": "2 min"
+        }
+      ]
+    },
+    {
+      "id": "tree_nuts",
+      "name": "Tree nuts",
+      "recipes": [
+        {
+          "name": "Thinned almond butter porridge",
+          "prep": "Whisk 1 tsp smooth almond butter into warm oatmeal until fully incorporated. Loosen to a soft consistency.",
+          "time": "5 min"
+        },
+        {
+          "name": "Cashew butter on banana",
+          "prep": "Thin 1 tsp smooth cashew butter with warm water, spread in a very thin layer along a banana spear.",
+          "time": "3 min"
+        },
+        {
+          "name": "Walnut butter yogurt",
+          "prep": "Whisk 1 tsp smooth walnut butter into plain yogurt until no clumps remain.",
+          "time": "2 min",
+          "note": "Tree nuts are not one allergen — almond, cashew, walnut, pistachio and others are distinct. Log each separately."
+        }
+      ]
+    },
+    {
+      "id": "fish",
+      "name": "Fish",
+      "recipes": [
+        {
+          "name": "Flaked salmon",
+          "prep": "Bake a salmon fillet until opaque, cool, flake thoroughly and check by hand for bones. Serve in soft flakes or mixed into mash.",
+          "time": "18 min"
+        },
+        {
+          "name": "Cod and potato mash",
+          "prep": "Poach cod until it flakes, check for bones, mash with cooked potato and a splash of milk or water.",
+          "time": "20 min"
+        },
+        {
+          "name": "Salmon patties",
+          "prep": "Mix flaked cooked salmon with mashed potato, form into small soft patties, pan-fry lightly. Cut into strips.",
+          "time": "25 min"
+        }
+      ]
+    },
+    {
+      "id": "shellfish",
+      "name": "Shellfish",
+      "recipes": [
+        {
+          "name": "Shrimp in avocado mash",
+          "prep": "Cook shrimp through, mince very finely, fold into mashed avocado. Serve on a pre-loaded spoon.",
+          "time": "10 min"
+        },
+        {
+          "name": "Crab and avocado",
+          "prep": "Fold cooked, well-picked-over crab meat into mashed avocado. Check carefully for shell fragments.",
+          "time": "5 min"
+        },
+        {
+          "name": "Shrimp pasta",
+          "prep": "Mince cooked shrimp finely and toss through very soft pasta with olive oil.",
+          "time": "15 min",
+          "note": "Crustaceans and molluscs are distinct allergen groups — log shrimp, crab, clam separately."
+        }
+      ]
+    },
+    {
+      "id": "sesame",
+      "name": "Sesame",
+      "recipes": [
+        {
+          "name": "Tahini oatmeal",
+          "prep": "Whisk 1 tsp tahini into warm oatmeal until fully dissolved. Loosen with water or milk.",
+          "time": "5 min"
+        },
+        {
+          "name": "Tahini yogurt dip",
+          "prep": "Whisk 1 tsp tahini into 2 tbsp plain yogurt. Serve on a spoon or as a dip for soft veggie spears.",
+          "time": "2 min"
+        },
+        {
+          "name": "Hummus on toast",
+          "prep": "Spread a thin layer of plain, low-salt, tahini-based hummus on toast strips.",
+          "time": "3 min",
+          "note": "Check the label — some hummus contains little or no tahini. Also exposes wheat."
+        }
+      ]
+    }
+  ]
+};
+    const RECIPES = Object.fromEntries(RECIPE_SEED.allergens.map((a) => [a.id, a]));
 
     const $ = (id) => document.getElementById(id);
     const views = {
@@ -284,6 +516,7 @@
       let allRows = [];
       let filterAllergen = null;
       let thresholdDays = 7;
+      let formRecipe = null;
 
       // ---- helpers ----
       const todayLocal = () => {
@@ -309,7 +542,7 @@
           { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       function showScreen(name) {
-        for (const s of ["dash", "log", "settings"])
+        for (const s of ["dash", "log", "settings", "recipes"])
           $("screen-" + s).classList.toggle("hidden", s !== name);
         window.scrollTo(0, 0);
       }
@@ -365,14 +598,23 @@
         });
       }
 
+      function updateRecipeChip() {
+        const chip = $("recipe-chip");
+        chip.classList.toggle("hidden", !formRecipe);
+        if (formRecipe) $("recipe-chip-name").textContent = formRecipe;
+      }
+      $("recipe-chip-clear").addEventListener("click", () => { formRecipe = null; updateRecipeChip(); });
+
       function resetForm() {
         editingId = null;
+        formRecipe = null;
         $("log-form").reset();
         $("allergen").value = TOP9[0][0];
         $("other-wrap").classList.add("hidden");
         $("served_on").value = todayLocal();
         setSeg("amount-group", null);
         setSeg("reaction-group", "none");
+        updateRecipeChip();
         $("form-title").textContent = "Log an introduction";
         $("save-btn").textContent = "Save entry";
         $("delete-btn").classList.add("hidden");
@@ -393,6 +635,8 @@
         setSeg("amount-group", row.amount || null);
         setSeg("reaction-group", row.reaction || "none");
         $("notes").value = row.notes || "";
+        formRecipe = row.recipe_used || null;
+        updateRecipeChip();
         $("form-title").textContent = "Edit entry";
         $("save-btn").textContent = "Update entry";
         $("delete-btn").classList.remove("hidden");
@@ -402,6 +646,7 @@
       $("new-entry-btn").addEventListener("click", () => { resetForm(); showScreen("log"); });
       $("back-btn").addEventListener("click", () => { resetForm(); showScreen("dash"); });
       $("settings-back").addEventListener("click", () => showScreen("dash"));
+      $("recipes-back").addEventListener("click", () => showScreen("dash"));
       $("open-settings").addEventListener("click", () => {
         $("threshold").value = thresholdDays;
         $("threshold-msg").classList.add("hidden");
@@ -432,6 +677,48 @@
         renderDashboard();
         showScreen("dash");
       });
+
+      // ---- recipes ----
+      $("recipes-note").textContent = RECIPE_SEED._note || "";
+      $("recipes-safety").innerHTML = "";
+      for (const rule of RECIPE_SEED._safety_rules_applied || []) {
+        const li = document.createElement("li");
+        li.textContent = rule;
+        $("recipes-safety").appendChild(li);
+      }
+
+      function openRecipes(id) {
+        const a = RECIPES[id];
+        if (!a) return;
+        $("recipes-title").textContent = `${a.name} — recipe ideas`;
+        const list = $("recipes-list");
+        list.innerHTML = "";
+        for (const r of a.recipes) {
+          const div = document.createElement("div");
+          div.className = "rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200";
+          div.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-semibold">${esc(r.name)}</h3>
+              <span class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">${esc(r.time)}</span>
+            </div>
+            <p class="mt-2 text-sm text-slate-700">${esc(r.prep)}</p>
+            ${r.note ? `<p class="mt-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">${esc(r.note)}</p>` : ""}
+            <button data-log class="mt-3 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white active:scale-[0.98]">
+              Log this
+            </button>`;
+          div.querySelector("[data-log]").addEventListener("click", () => {
+            resetForm();
+            $("allergen").value = id;
+            $("other-wrap").classList.add("hidden");
+            formRecipe = r.name;
+            updateRecipeChip();
+            showScreen("log");
+          });
+          list.appendChild(div);
+        }
+        showScreen("recipes");
+      }
+      $("see-recipes").addEventListener("click", () => { if (filterAllergen) openRecipes(filterAllergen); });
 
       // ---- data ----
       function showLoadError(where, error) {
@@ -555,6 +842,12 @@
         $("clear-filter").classList.toggle("hidden", !filterAllergen);
         if (filterAllergen) $("filter-label").textContent = TOP9_LABEL[filterAllergen];
 
+        const sr = $("see-recipes");
+        const hasRecipes = !!(filterAllergen && RECIPES[filterAllergen]);
+        sr.classList.toggle("hidden", !hasRecipes);
+        if (hasRecipes)
+          sr.textContent = `View ${RECIPES[filterAllergen].recipes.length} ${TOP9_LABEL[filterAllergen]} recipe ideas →`;
+
         const empty = $("history-empty");
         empty.classList.toggle("hidden", rows.length > 0);
         empty.textContent = filterAllergen
@@ -576,6 +869,7 @@
               </span>
             </div>
             <div class="mt-0.5 text-sm text-slate-500">${esc(parts.join(" · "))}</div>
+            ${row.recipe_used ? `<div class="mt-1 text-xs text-slate-400">Recipe: ${esc(row.recipe_used)}</div>` : ""}
             ${row.notes ? `<p class="mt-2 text-sm text-slate-700 whitespace-pre-wrap">${esc(row.notes)}</p>` : ""}
             <div class="mt-3">
               <button data-edit class="text-sm font-medium text-slate-600 underline">Edit</button>
@@ -602,6 +896,7 @@
           amount: segValue("amount-group"),
           reaction: segValue("reaction-group") || "none",
           notes: $("notes").value.trim() || null,
+          recipe_used: formRecipe || null,
         };
         const btn = $("save-btn");
         btn.disabled = true;
