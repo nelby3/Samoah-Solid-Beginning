@@ -113,6 +113,7 @@
                 Re-exposure reminder: every <span id="threshold-display">7</span> days
               </button>
               <button id="open-export" class="text-xs text-slate-500 underline">Export / print summary</button>
+              <button id="open-nutrients" class="text-xs text-slate-500 underline">Iron, zinc &amp; calcium</button>
             </div>
           </section>
 
@@ -246,6 +247,23 @@
             <summary class="cursor-pointer text-sm font-medium text-slate-700">How these were prepared</summary>
             <ul id="recipes-safety" class="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-500"></ul>
           </details>
+        </div>
+
+        <!-- ============ Nutrients reference screen ============ -->
+        <div id="screen-nutrients" class="hidden">
+          <button id="nutrients-back" class="mt-5 text-sm font-medium text-slate-500">← Dashboard</button>
+          <h2 class="mt-3 text-lg font-semibold">Iron, zinc &amp; calcium</h2>
+          <p class="mt-1 text-xs text-slate-500">
+            Reference only — general guidance, not personalised advice. Amounts are per the
+            portion shown; a baby serving is small (about 1–4 tablespoons). Confirm what's
+            right for your baby with your pediatrician.
+          </p>
+          <div id="nutrient-tabs" class="mt-4 grid grid-cols-3 gap-2" role="group" aria-label="Nutrient">
+            <button type="button" data-n="iron" class="seg" aria-pressed="true">Iron</button>
+            <button type="button" data-n="zinc" class="seg">Zinc</button>
+            <button type="button" data-n="calcium" class="seg">Calcium</button>
+          </div>
+          <div id="nutrient-content" class="mt-4"></div>
         </div>
 
         <!-- ============ Export screen ============ -->
@@ -536,6 +554,76 @@
 };
     const RECIPES = Object.fromEntries(RECIPE_SEED.allergens.map((a) => [a.id, a]));
 
+    // Static reference — no logging, no reminders. Nutrient amounts are approximate,
+    // per the portion shown, from CDC / NIH ODS / WHO / IOF food tables.
+    const NUTRIENT_INFO = {
+      iron: {
+        label: "Iron",
+        guidance:
+          "Aim for an iron-rich food every day, ideally at two or more meals. A baby's iron " +
+          "stores from birth run low around 6 months and breast milk is low in iron. The target " +
+          "is about 11 mg a day at 7–12 months. Pairing plant sources with a vitamin-C food " +
+          "(berries, citrus, tomato, pepper, broccoli) helps absorption.",
+        source: "CDC infant nutrition",
+        sourceUrl: "https://www.cdc.gov/infant-toddler-nutrition/vitamins-minerals/iron.html",
+        foods: [
+          ["Iron-fortified infant cereal", "~7 mg", "15 g dry — varies by brand, check the box"],
+          ["Beef, cooked", "~2.5 mg", "100 g"],
+          ["Lentils, cooked", "~3.3 mg", "100 g (about ½ cup)"],
+          ["White beans, cooked", "~3.7 mg", "100 g"],
+          ["Chickpeas, cooked", "~2.4 mg", "100 g"],
+          ["Spinach, cooked", "~3.2 mg", "100 g"],
+          ["Firm tofu", "~2.7 mg", "100 g"],
+          ["Pumpkin seed butter, thinned", "~2.5 mg", "2 tbsp (30 g)"],
+          ["Dark-meat chicken or turkey, cooked", "~1.3 mg", "100 g"],
+          ["Egg", "~0.9 mg", "1 large, yolk included"],
+        ],
+      },
+      zinc: {
+        label: "Zinc",
+        guidance:
+          "Aim for a zinc-rich food every day. Breast-milk zinc becomes insufficient after about " +
+          "6 months, and meat and other animal foods are the richest sources. The target is about " +
+          "3 mg a day at 7–12 months.",
+        source: "WHO complementary feeding guideline",
+        sourceUrl: "https://www.ncbi.nlm.nih.gov/books/NBK596430/",
+        foods: [
+          ["Beef, cooked", "~5 mg", "100 g"],
+          ["Pork, cooked", "~2.5 mg", "100 g"],
+          ["Dark-meat chicken or turkey, cooked", "~2.4 mg", "100 g"],
+          ["Pumpkin seed butter, thinned", "~2.3 mg", "2 tbsp (30 g)"],
+          ["Chickpeas, cooked", "~1.5 mg", "100 g"],
+          ["Lentils, cooked", "~1.3 mg", "100 g"],
+          ["Firm tofu", "~1.6 mg", "100 g"],
+          ["Whole-milk yogurt", "~1 mg", "150 g"],
+          ["Cheddar cheese", "~0.9 mg", "30 g"],
+          ["Zinc-fortified infant cereal", "~1 mg", "15 g dry — varies, check the box"],
+        ],
+      },
+      calcium: {
+        label: "Calcium",
+        guidance:
+          "Most calcium at this age comes from breast milk or formula, which usually covers the " +
+          "~260 mg a day goal for 7–12 months — so there's no need to push calcium foods the way " +
+          "you do iron and zinc. Dairy is fine as yogurt or cheese, but cow's milk shouldn't be a " +
+          "main drink before 12 months.",
+        source: "NIH ODS / International Osteoporosis Foundation",
+        sourceUrl: "https://www.osteoporosis.foundation/patients/prevention/calcium-content-of-common-foods",
+        foods: [
+          ["Whole-milk yogurt", "~200 mg", "150 g (about ¾ cup)"],
+          ["Cheddar or other hard cheese", "~200 mg", "30 g"],
+          ["Calcium-set tofu", "~130–300 mg", "100 g — only if set with calcium, check the label"],
+          ["Canned salmon or sardines, soft bones mashed in", "~200 mg", "60 g"],
+          ["Whole milk, in cooking or yogurt", "~300 mg", "1 cup (240 ml)"],
+          ["Cooked kale or collard greens", "~130 mg", "100 g"],
+          ["Chia seeds as a thin pudding", "~180 mg", "2 tbsp (30 g)"],
+          ["Tahini (sesame paste)", "~60 mg", "2 tbsp (30 g)"],
+          ["White beans, cooked", "~65 mg", "100 g"],
+          ["Cooked broccoli", "~45 mg", "100 g"],
+        ],
+      },
+    };
+
     const $ = (id) => document.getElementById(id);
     const views = {
       loading: $("view-loading"), login: $("view-login"),
@@ -606,7 +694,7 @@
           { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
       function showScreen(name) {
-        for (const s of ["dash", "log", "settings", "recipes", "export"])
+        for (const s of ["dash", "log", "settings", "recipes", "export", "nutrients"])
           $("screen-" + s).classList.toggle("hidden", s !== name);
         window.scrollTo(0, 0);
       }
@@ -805,6 +893,43 @@
         showScreen("recipes");
       }
       $("see-recipes").addEventListener("click", () => { if (filterAllergen) openRecipes(filterAllergen); });
+
+      // ---- nutrients reference ----
+      function renderNutrientInfo(key) {
+        const n = NUTRIENT_INFO[key];
+        document.querySelectorAll("#nutrient-tabs button").forEach((b) =>
+          b.setAttribute("aria-pressed", String(b.dataset.n === key)));
+        const rows = n.foods.map(([food, amt, portion]) => `
+          <tr>
+            <td class="py-2 pr-3 align-top">
+              <div class="text-sm text-slate-700">${esc(food)}</div>
+              <div class="text-xs text-slate-400">${esc(portion)}</div>
+            </td>
+            <td class="whitespace-nowrap py-2 text-right align-top text-sm font-semibold">${esc(amt)}</td>
+          </tr>`).join("");
+        $("nutrient-content").innerHTML = `
+          <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <p class="text-sm text-slate-700">${esc(n.guidance)}</p>
+            <p class="mt-2 text-xs text-slate-400">Guidance:
+              <a href="${esc(n.sourceUrl)}" target="_blank" rel="noopener" class="underline">${esc(n.source)}</a>
+            </p>
+          </div>
+          <table class="mt-4 w-full">
+            <thead>
+              <tr class="border-b border-slate-200 text-left text-xs font-medium text-slate-400">
+                <th class="pb-1">Food</th>
+                <th class="pb-1 text-right">${esc(n.label)} per portion</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">${rows}</tbody>
+          </table>`;
+      }
+      $("open-nutrients").addEventListener("click", () => { renderNutrientInfo("iron"); showScreen("nutrients"); });
+      $("nutrients-back").addEventListener("click", () => showScreen("dash"));
+      $("nutrient-tabs").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (b) renderNutrientInfo(b.dataset.n);
+      });
 
       // ---- export ----
       $("open-export").addEventListener("click", () => { renderSummary(); showScreen("export"); });

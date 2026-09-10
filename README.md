@@ -66,6 +66,13 @@ before relying on it.
 - [x] **Phase 6 — Export:** CSV download + print/PDF summary grouped by allergen
 - [x] **Phase 7 — Polish:** installable PWA, offline shell, optimistic writes, empty states
 
+### Added later
+
+- **Iron, zinc & calcium reference** (dashboard link) — a static screen with the
+  daily-serving guidance for each and ~10 foods with the amount per portion.
+  Read-only: no tracking, logging, reminders, or database. Data is inlined in
+  `index.html` (`NUTRIENT_INFO`).
+
 ## Not in scope
 
 No reintroduction schedule, "safe amounts," or medical guidance. The app records
