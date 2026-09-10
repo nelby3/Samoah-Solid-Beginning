@@ -19,9 +19,11 @@ Full design rationale and phase breakdown: [BUILD-PLAN.md](BUILD-PLAN.md).
 
 1. **Create a Supabase project** at [supabase.com](https://supabase.com).
 2. **Run the migrations** in the Supabase SQL editor, in order:
-   [`0001_init.sql`](supabase/migrations/0001_init.sql) (schema, grants, RLS
-   policies) then [`0002_reexposure_threshold.sql`](supabase/migrations/0002_reexposure_threshold.sql)
-   (adds the re-exposure reminder setting).
+   [`0001_init.sql`](supabase/migrations/0001_init.sql) (schema, grants, RLS),
+   [`0002_reexposure_threshold.sql`](supabase/migrations/0002_reexposure_threshold.sql)
+   (re-exposure reminder setting), then
+   [`0003_multi_allergen.sql`](supabase/migrations/0003_multi_allergen.sql)
+   (an entry can be tagged with several allergens).
 3. **Configure the client:** copy your Project URL and `anon` key into
    [`config.js`](config.js). Both values are safe to commit — the anon key is
    public by design and every table is guarded by RLS.
@@ -68,7 +70,11 @@ before relying on it.
 
 ### Added later
 
-- **Iron, zinc & calcium reference** (dashboard link) — a static screen with the
+- **Multiple allergens per entry** — the log form is a multi-select; a food that
+  contains both egg and wheat is one entry tagged with both. Stored in
+  `introductions.allergens` (`text[]`); it counts toward every tagged allergen on
+  the dashboard and appears under each in history filters and the print summary.
+- **Iron, zinc & calcium reference** (dashboard tiles) — a static screen with the
   daily-serving guidance for each and ~10 foods with the amount per portion.
   Read-only: no tracking, logging, reminders, or database. Data is inlined in
   `index.html` (`NUTRIENT_INFO`).

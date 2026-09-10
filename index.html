@@ -151,18 +151,26 @@
             </div>
 
             <div>
-              <label for="allergen" class="block text-sm font-medium">Allergen</label>
-              <select id="allergen" required
-                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10">
-              </select>
+              <span class="block text-sm font-medium">
+                Allergens <span class="text-slate-400">— tap all that apply</span>
+              </span>
+              <div id="allergen-group" class="mt-1 grid grid-cols-3 gap-2" role="group" aria-label="Allergens"></div>
             </div>
 
-            <div id="other-wrap" class="hidden">
-              <label for="other-allergen" class="block text-sm font-medium">Which allergen?</label>
-              <input id="other-allergen" type="text" placeholder="e.g. kiwi, mustard"
-                class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
-                       outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+            <div>
+              <label for="other-allergen" class="block text-sm font-medium">
+                Other <span class="text-slate-400">(not in the top 9)</span>
+              </label>
+              <div class="mt-1 flex gap-2">
+                <input id="other-allergen" type="text" placeholder="e.g. kiwi, mustard"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base
+                         outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10" />
+                <button type="button" id="other-add"
+                  class="shrink-0 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold active:scale-[0.98]">
+                  Add
+                </button>
+              </div>
+              <div id="other-chips" class="mt-2 flex flex-wrap gap-2"></div>
             </div>
 
             <div>
@@ -696,8 +704,13 @@
         return Math.round((t0 - parseDate(iso)) / 86400000);
       };
       const agoLabel = (n) => (n <= 0 ? "today" : n === 1 ? "1d ago" : `${n}d ago`);
-      const allergenLabel = (row) =>
-        row.is_top_nine ? (TOP9_LABEL[row.allergen] || row.allergen) : row.allergen;
+      const isTop9 = (a) => Object.prototype.hasOwnProperty.call(TOP9_LABEL, a);
+      const oneLabel = (a) => TOP9_LABEL[a] || a;
+      const allergensOf = (row) =>
+        Array.isArray(row.allergens) && row.allergens.length
+          ? row.allergens
+          : (row.allergen ? [row.allergen] : []);
+      const allergensLabel = (row) => allergensOf(row).map(oneLabel).join(", ") || "—";
       const esc = (s) =>
         String(s ?? "").replace(/[&<>"']/g, (c) => (
           { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -754,13 +767,59 @@
       $("logout-btn").addEventListener("click", () => supabase.auth.signOut());
 
       // ---- form widgets ----
-      const allergenSel = $("allergen");
-      allergenSel.innerHTML =
-        TOP9.map(([id, label]) => `<option value="${id}">${label}</option>`).join("") +
-        `<option value="__other">Other…</option>`;
-      allergenSel.addEventListener("change", () => {
-        $("other-wrap").classList.toggle("hidden", allergenSel.value !== "__other");
+      let otherTags = [];
+
+      $("allergen-group").innerHTML = TOP9
+        .map(([id, label]) => `<button type="button" data-a="${id}" class="seg" aria-pressed="false">${label}</button>`)
+        .join("");
+      $("allergen-group").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (b) b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
       });
+
+      function renderOtherChips() {
+        $("other-chips").innerHTML = otherTags
+          .map((t, i) => `
+            <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs">
+              ${esc(t)}<button type="button" data-i="${i}" class="text-slate-400" aria-label="Remove">✕</button>
+            </span>`)
+          .join("");
+      }
+      $("other-chips").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        otherTags.splice(Number(b.dataset.i), 1);
+        renderOtherChips();
+      });
+      function addOtherTag() {
+        const v = $("other-allergen").value.trim();
+        $("other-allergen").value = "";
+        if (!v) return;
+        const hit = TOP9.find(([id, label]) =>
+          id === v.toLowerCase() || label.toLowerCase() === v.toLowerCase());
+        if (hit) {
+          document.querySelector(`#allergen-group [data-a="${hit[0]}"]`)?.setAttribute("aria-pressed", "true");
+        } else if (!otherTags.some((t) => t.toLowerCase() === v.toLowerCase())) {
+          otherTags.push(v);
+          renderOtherChips();
+        }
+      }
+      $("other-add").addEventListener("click", addOtherTag);
+      $("other-allergen").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); addOtherTag(); }
+      });
+
+      function selectedAllergens() {
+        const top9 = [...document.querySelectorAll('#allergen-group [aria-pressed="true"]')].map((b) => b.dataset.a);
+        return [...top9, ...otherTags];
+      }
+      function setAllergenSelection(list) {
+        otherTags = list.filter((a) => !isTop9(a));
+        document.querySelectorAll("#allergen-group button").forEach((b) =>
+          b.setAttribute("aria-pressed", String(list.includes(b.dataset.a))));
+        $("other-allergen").value = "";
+        renderOtherChips();
+      }
 
       const segValue = (groupId) => {
         const b = document.querySelector(`#${groupId} [aria-pressed="true"]`);
@@ -792,8 +851,7 @@
         editingId = null;
         formRecipe = null;
         $("log-form").reset();
-        $("allergen").value = TOP9[0][0];
-        $("other-wrap").classList.add("hidden");
+        setAllergenSelection([]);
         $("served_on").value = todayLocal();
         setSeg("amount-group", null);
         setSeg("reaction-group", "none");
@@ -807,13 +865,7 @@
       function fillForm(row) {
         resetForm();
         editingId = row.id;
-        if (row.is_top_nine && TOP9_LABEL[row.allergen]) {
-          $("allergen").value = row.allergen;
-        } else {
-          $("allergen").value = "__other";
-          $("other-wrap").classList.remove("hidden");
-          $("other-allergen").value = row.allergen;
-        }
+        setAllergenSelection(allergensOf(row));
         $("served_on").value = row.served_on;
         setSeg("amount-group", row.amount || null);
         setSeg("reaction-group", row.reaction || "none");
@@ -891,8 +943,7 @@
             </button>`;
           div.querySelector("[data-log]").addEventListener("click", () => {
             resetForm();
-            $("allergen").value = id;
-            $("other-wrap").classList.add("hidden");
+            document.querySelector(`#allergen-group [data-a="${id}"]`)?.setAttribute("aria-pressed", "true");
             formRecipe = r.name;
             updateRecipeChip();
             showScreen("log");
@@ -970,12 +1021,12 @@
         return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
       }
       function toCsv(rows) {
-        const head = ["served_on", "allergen", "is_top_nine", "amount", "reaction", "recipe_used", "notes", "logged_at"];
+        const head = ["served_on", "allergens", "amount", "reaction", "recipe_used", "notes", "logged_at"];
         const sorted = [...rows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
         const lines = [head.join(",")];
         for (const r of sorted) {
           lines.push([
-            r.served_on, allergenLabel(r), r.is_top_nine, r.amount || "",
+            r.served_on, allergensOf(r).map(oneLabel).join("; "), r.amount || "",
             r.reaction, r.recipe_used || "", r.notes || "", r.created_at,
           ].map(csvCell).join(","));
         }
@@ -995,9 +1046,11 @@
         const sorted = [...allRows].sort((a, b) => (a.served_on < b.served_on ? -1 : a.served_on > b.served_on ? 1 : 0));
         const groups = new Map();
         for (const r of sorted) {
-          const key = allergenLabel(r);
-          if (!groups.has(key)) groups.set(key, []);
-          groups.get(key).push(r);
+          for (const a of allergensOf(r)) {
+            const key = oneLabel(a);
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(r);
+          }
         }
         const top9Labels = TOP9.map(([, l]) => l);
         const order = top9Labels.filter((l) => groups.has(l))
@@ -1096,7 +1149,7 @@
         const overdue = [];
 
         for (const [id, label] of TOP9) {
-          const rows = allRows.filter((r) => r.is_top_nine && r.allergen === id);
+          const rows = allRows.filter((r) => allergensOf(r).includes(id));
           const status = statusOf(rows);
           let sub = "Not tried yet";
           let isOverdue = false;
@@ -1147,7 +1200,7 @@
 
       function renderHistory() {
         const rows = filterAllergen
-          ? allRows.filter((r) => r.is_top_nine && r.allergen === filterAllergen)
+          ? allRows.filter((r) => allergensOf(r).includes(filterAllergen))
           : allRows;
 
         $("clear-filter").classList.toggle("hidden", !filterAllergen);
@@ -1174,7 +1227,7 @@
           if (row.amount) parts.push(AMOUNT_LABEL[row.amount] || row.amount);
           li.innerHTML = `
             <div class="flex items-start justify-between gap-2">
-              <span class="font-semibold">${esc(allergenLabel(row))}</span>
+              <span class="font-semibold">${esc(allergensLabel(row))}</span>
               <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${REACTION_BADGE[row.reaction] || REACTION_BADGE.none}">
                 ${esc(row.reaction)}
               </span>
@@ -1192,17 +1245,16 @@
 
       $("log-form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const isOther = $("allergen").value === "__other";
-        const allergen = isOther ? $("other-allergen").value.trim() : $("allergen").value;
+        addOtherTag(); // fold any unsubmitted text in the "other" box
+        const allergens = selectedAllergens();
         const msg = $("form-msg");
-        if (!allergen) {
-          msg.textContent = "Enter which allergen was served.";
+        if (!allergens.length) {
+          msg.textContent = "Tap at least one allergen, or add an “other”.";
           msg.classList.remove("hidden");
           return;
         }
         const payload = {
-          allergen,
-          is_top_nine: !isOther,
+          allergens,
           served_on: $("served_on").value,
           amount: segValue("amount-group"),
           reaction: segValue("reaction-group") || "none",
@@ -1258,7 +1310,7 @@
         const idx = allRows.findIndex((r) => r.id === id);
         const removed = idx !== -1 ? allRows[idx] : null;
         const what = removed
-          ? `${allergenLabel(removed)} entry from ${fmtDate(removed.served_on)}`
+          ? `${allergensLabel(removed)} entry from ${fmtDate(removed.served_on)}`
           : "this entry";
         if (!confirm(`Delete the ${what}?`)) return;
 
